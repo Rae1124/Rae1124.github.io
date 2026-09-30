@@ -1,0 +1,60 @@
+name: Build Windows desktop application
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [desktop-electron-v1]
+    paths:
+      - 'electron/**'
+      - 'renderer/**'
+      - 'desktop-captcha.html'
+      - 'build/icon-source.png'
+      - 'scripts/**'
+      - 'test/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-desktop.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run desktop tests
+        run: npm test
+      - name: Prepare Windows icon
+        run: npm run prepare:icon
+      - name: Build NSIS and portable x64 executables
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run build:win
+      - name: Verify expected desktop outputs
+        shell: pwsh
+        run: |
+          $required = @(
+            'dist/Online-Students-ID-Replacement-System-Setup.exe',
+            'dist/Online-Students-ID-Replacement-System-Portable.exe',
+            'dist/win-unpacked/Online Students ID Replacement System.exe'
+          )
+          foreach ($item in $required) {
+            if (-not (Test-Path $item)) { throw "Missing expected desktop output: $item" }
+          }
+      - name: Upload desktop build
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-students-id-replacement-system-windows
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/Online-Students-ID-Replacement-System-Setup.exe
+            dist/Online-Students-ID-Replacement-System-Portable.exe
+            dist/win-unpacked/**
