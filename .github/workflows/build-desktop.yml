@@ -6,7 +6,7 @@ on:
     branches:
       - desktop-electron-build
     paths:
-      - 'desktop-source.tar.gz'
+      - 'desktop-source.b64.part-*'
       - 'desktop-captcha.html'
       - '.github/workflows/build-desktop.yml'
 
@@ -28,6 +28,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p desktop-work
+          cat desktop-source.b64.part-00 desktop-source.b64.part-01 desktop-source.b64.part-020 desktop-source.b64.part-021 desktop-source.b64.part-022 desktop-source.b64.part-03 desktop-source.b64.part-04 desktop-source.b64.part-05 | base64 --decode > desktop-source.tar.gz
           tar -xzf desktop-source.tar.gz -C desktop-work
 
       - name: Install dependencies
