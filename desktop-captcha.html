@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://challenges.cloudflare.com; style-src 'unsafe-inline'; frame-src https://challenges.cloudflare.com; connect-src https://challenges.cloudflare.com; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Staff Security Verification</title>
+<style>body{margin:0;padding:32px;font:15px/1.6 'Segoe UI',sans-serif;background:#f3f7fc;color:#173b73}h1{font-size:23px;margin:0 0 8px}p{color:#506078}#widget{min-height:70px}button{margin-top:18px;background:white;border:1px solid #cfdbea;border-radius:9px;padding:10px 18px;color:#173b73;cursor:pointer}#status{font-size:13px}</style>
+</head><body><h1>Staff security verification</h1><p>Verify that you’re human to continue signing in.</p><div id="widget"></div><p id="status" role="status">Loading verification…</p><button id="cancel" type="button">Cancel</button>
+<script>
+const status=document.getElementById('status');
+document.getElementById('cancel').onclick=()=>window.captchaBridge?.cancel();
+window.startVerification=()=>{
+ if(!window.captchaBridge){status.textContent='Open verification from the desktop application.';return;}
+ window.turnstile.render('#widget',{sitekey:'0x4AAAAAAFKA_EpytVI2BhzZ',action:'staff_login',appearance:'always',theme:'light',callback:token=>{status.textContent='Verification complete.';window.captchaBridge.complete(token);},'expired-callback':()=>{status.textContent='Verification expired. Please try again.';},'error-callback':()=>{status.textContent='Unable to verify. Close this window and try again.';}});
+ status.textContent='Complete the verification above.';
+};
+</script><script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=startVerification&amp;render=explicit" async defer></script></body></html>
