@@ -1,0 +1,39 @@
+{
+  "name": "online-students-id-replacement-system",
+  "version": "1.0.0",
+  "private": true,
+  "productName": "Online Students ID Replacement System",
+  "description": "Windows desktop client for the Online Students ID Replacement System",
+  "main": "electron/main.js",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "electron .",
+    "prepare:icon": "node scripts/prepare-icon.js",
+    "build:win": "electron-builder --win nsis portable --x64"
+  },
+  "devDependencies": {
+    "electron": "37.4.0",
+    "electron-builder": "26.0.12",
+    "png-to-ico": "3.0.1"
+  },
+  "build": {
+    "appId": "ph.sjc.online-students-id-replacement-system",
+    "productName": "Online Students ID Replacement System",
+    "asar": true,
+    "files": ["electron/**/*", "renderer/**/*", "build/icon.ico"],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {"target":"nsis","arch":["x64"]},
+        {"target":"portable","arch":["x64"]}
+      ]
+    },
+    "nsis": {
+      "artifactName": "Online-Students-ID-Replacement-System-Setup.${ext}",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Online Students ID Replacement System"
+    },
+    "portable": {"artifactName": "Online-Students-ID-Replacement-System-Portable.${ext}"}
+  }
+}
