@@ -1,0 +1,45 @@
+name: Build Windows Desktop
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'electron/**'
+      - 'renderer/**'
+      - 'build/**'
+      - 'scripts/**'
+      - 'test/**'
+      - 'package*.json'
+      - '.github/workflows/build-desktop.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run prepare:icon
+      - run: npm run build:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify both executables exist
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'dist/Online-Students-ID-Replacement-System-Setup.exe')) { throw 'Installer missing' }
+          if (!(Test-Path 'dist/Online-Students-ID-Replacement-System-Portable.exe')) { throw 'Portable missing' }
+          Get-FileHash dist/*.exe -Algorithm SHA256 | Format-Table
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Online-Students-ID-Replacement-System-Windows
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist/Online-Students-ID-Replacement-System-Setup.exe
+            dist/Online-Students-ID-Replacement-System-Portable.exe
+            dist/win-unpacked/**
