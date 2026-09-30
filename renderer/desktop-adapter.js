@@ -5,14 +5,105 @@
     ['https://rpaaagfgyauqeyrqollr.supabase.co/functions/v1/id-system-documents','documents'],
     ['https://rpaaagfgyauqeyrqollr.supabase.co/functions/v1/id-system-staff-login','staff-login'],
   ];
-  function applyBranding(){const title=document.querySelector('.topbar h1');if(title)title.textContent=PRODUCT_NAME;const hero=document.querySelector('.hero h1');if(hero)hero.textContent=PRODUCT_NAME;const footer=document.querySelector('.footer');if(footer)footer.textContent=PRODUCT_NAME}
-  function parseEndpoint(raw){for(const [prefix,service] of ENDPOINTS){if(raw===prefix)return {service,path:''};if(raw.startsWith(prefix+'/')||raw.startsWith(prefix+'?'))return {service,path:raw.slice(prefix.length)}}throw new Error('Desktop blocked an unapproved network destination.')}
-  function readHeader(headers,name){if(!headers)return '';if(typeof headers.get==='function')return headers.get(name)||headers.get(name.toLowerCase())||'';const key=Object.keys(headers).find(k=>k.toLowerCase()===name.toLowerCase());return key?String(headers[key]):''}
-  if(window.desktopApi){
-    window.fetch=async function(input,init={}){const raw=typeof input==='string'?input:(input&&input.url);if(typeof raw!=='string')throw new Error('Desktop blocked an invalid network request.');const target=parseEndpoint(raw);const method=String(init.method||'GET').toUpperCase();const authorization=readHeader(init.headers,'Authorization');const token=authorization.startsWith('Bearer ')?authorization.slice(7):'';let body;if(init.body!=null){if(typeof init.body!=='string')throw new Error('Desktop API requests must use JSON bodies.');body=JSON.parse(init.body)}const result=await window.desktopApi.request({service:target.service,path:target.path,method,body,token});return {ok:Boolean(result.ok),status:Number(result.status)||0,json:async()=>result.data||{},text:async()=>JSON.stringify(result.data||{})}};
-    window.open=function(url){window.desktopApi.openSignedDocument(String(url)).catch(()=>{});return null};
+
+  function applyBranding(){
+    const title=document.querySelector('.topbar h1');
+    if(title) title.textContent=PRODUCT_NAME;
+    const hero=document.querySelector('.hero h1');
+    if(hero) hero.textContent=PRODUCT_NAME;
+    const footer=document.querySelector('.footer');
+    if(footer) footer.textContent=PRODUCT_NAME;
   }
-  for(const eventName of ['dragover','drop'])window.addEventListener(eventName,event=>event.preventDefault());
+
+  function parseEndpoint(raw){
+    for(const [prefix,service] of ENDPOINTS){
+      if(raw===prefix) return {service,path:''};
+      if(raw.startsWith(prefix+'/') || raw.startsWith(prefix+'?')) return {service,path:raw.slice(prefix.length)};
+    }
+    throw new Error('Desktop blocked an unapproved network destination.');
+  }
+
+  function readHeader(headers,name){
+    if(!headers) return '';
+    if(typeof headers.get==='function') return headers.get(name)||headers.get(name.toLowerCase())||'';
+    const key=Object.keys(headers).find(k=>k.toLowerCase()===name.toLowerCase());
+    return key?String(headers[key]):'';
+  }
+
+  function installTurnstileShim(){
+    let nextId=1;
+    const widgets=new Map();
+    function mount(widget){
+      const holder=typeof widget.target==='string'?document.querySelector(widget.target):widget.target;
+      if(!holder)return;
+      holder.innerHTML='';
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='outline';
+      button.textContent='Verify I’m Human';
+      const status=document.createElement('span');
+      status.className='captchaHint';
+      status.textContent='Verification required';
+      holder.append(button,status);
+      button.addEventListener('click',async()=>{
+        button.disabled=true;status.textContent='Opening secure verification…';
+        try{
+          const token=await window.desktopApi.requestCaptcha();
+          status.textContent='Verified';
+          button.textContent='Verified';
+          widget.token=token;
+          if(widget.timer)clearTimeout(widget.timer);
+          widget.timer=setTimeout(()=>{
+            widget.token='';
+            if(typeof widget.options['expired-callback']==='function')widget.options['expired-callback']();
+            mount(widget);
+          },270000);
+          if(typeof widget.options.callback==='function')widget.options.callback(token);
+        }catch(error){
+          status.textContent=error?.message||'Verification failed. Please try again.';
+          button.disabled=false;
+          if(typeof widget.options['error-callback']==='function')widget.options['error-callback']();
+        }
+      });
+    }
+    window.turnstile={
+      render(target,options={}){const id=nextId++;const widget={id,target,options,token:'',timer:null};widgets.set(id,widget);mount(widget);return id},
+      reset(id){const widget=widgets.get(id);if(!widget)return;if(widget.timer)clearTimeout(widget.timer);widget.timer=null;widget.token='';mount(widget)}
+    };
+  }
+
+  if(window.desktopApi){
+    installTurnstileShim();
+    window.fetch=async function(input,init={}){
+      const raw=typeof input==='string'?input:(input&&input.url);
+      if(typeof raw!=='string') throw new Error('Desktop blocked an invalid network request.');
+      const target=parseEndpoint(raw);
+      const method=String(init.method||'GET').toUpperCase();
+      const authorization=readHeader(init.headers,'Authorization');
+      const token=authorization.startsWith('Bearer ')?authorization.slice(7):'';
+      let body;
+      if(init.body!=null){
+        if(typeof init.body!=='string') throw new Error('Desktop API requests must use JSON bodies.');
+        body=JSON.parse(init.body);
+      }
+      const result=await window.desktopApi.request({service:target.service,path:target.path,method,body,token});
+      return {
+        ok:Boolean(result.ok),
+        status:Number(result.status)||0,
+        json:async()=>result.data||{},
+        text:async()=>JSON.stringify(result.data||{}),
+      };
+    };
+    window.open=function(url){
+      window.desktopApi.openSignedDocument(String(url)).catch(()=>{});
+      return null;
+    };
+  }
+
+  for(const eventName of ['dragover','drop']){
+    window.addEventListener(eventName,event=>event.preventDefault());
+  }
+
   new MutationObserver(()=>requestAnimationFrame(applyBranding)).observe(document.documentElement,{childList:true,subtree:true});
   document.addEventListener('DOMContentLoaded',applyBranding);
 })();
