@@ -23,3 +23,12 @@ test('bundled renderer exists and keeps production contracts without secrets', (
   assert.doesNotMatch(all, /TURNSTILE_SECRET_KEY/);
   assert.doesNotMatch(html, /challenges\.cloudflare\.com\/turnstile/);
 });
+
+test('desktop adapter routes production APIs and signed documents through the preload bridge', () => {
+  const adapter = read('renderer/desktop-adapter.js');
+  assert.match(adapter, /window\.desktopApi\.request/);
+  assert.match(adapter, /window\.desktopApi\.openSignedDocument/);
+  assert.match(adapter, /id-system-api/);
+  assert.match(adapter, /id-system-documents/);
+  assert.match(adapter, /id-system-staff-login/);
+});
