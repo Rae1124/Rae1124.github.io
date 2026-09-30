@@ -1,0 +1,49 @@
+name: Build Windows Desktop App
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [desktop-electron]
+    paths:
+      - 'electron/**'
+      - 'renderer/**'
+      - 'desktop-captcha.html'
+      - 'build/icon-source.png'
+      - 'scripts/**'
+      - 'package.json'
+      - 'test/**'
+      - '.github/workflows/build-desktop.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned dependencies
+        run: npm install --no-audit --no-fund
+      - name: Prepare Windows icon
+        run: npm run prepare:icon
+      - name: Run desktop tests
+        run: npm test
+      - name: Build installer and portable executables
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run build:win
+      - name: Upload Windows desktop build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Online-Students-ID-Replacement-System-Windows
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist/Online-Students-ID-Replacement-System-Setup.exe
+            dist/Online-Students-ID-Replacement-System-Portable.exe
+            dist/win-unpacked/**
