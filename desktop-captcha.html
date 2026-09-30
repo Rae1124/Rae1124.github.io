@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Human Verification</title>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:28px;background:#f4f7fb;color:#172033;font-family:Inter,"Segoe UI",system-ui,sans-serif}.card{width:min(360px,100%);background:#fff;border:1px solid #e4eaf2;border-radius:18px;padding:26px;box-shadow:0 16px 46px rgba(29,52,84,.10)}.mark{width:46px;height:46px;border-radius:12px;background:#eaf2fb;color:#245f9e;display:grid;place-items:center;font-weight:900;margin-bottom:16px}h1{font-size:21px;margin:0 0 8px}p{font-size:12px;line-height:1.6;color:#6d7b8f;margin:0 0 18px}.widget{min-height:70px}.actions{display:flex;justify-content:flex-end;margin-top:18px}button{border:1px solid #cbd9e8;background:#fff;color:#285d96;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}.status{font-size:11px;color:#6d7b8f;margin-top:10px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="mark">ID</div>
+    <h1>Human Verification</h1>
+    <p>Complete this security check to continue signing in to the staff portal.</p>
+    <div id="turnstile" class="widget"></div>
+    <div id="status" class="status">Preparing verification…</div>
+    <div class="actions"><button id="cancel" type="button">Cancel</button></div>
+  </main>
+  <script>
+    const SITE_KEY='0x4AAAAAAFKA_EpytVI2BhzZ';
+    let attempts=0;
+    function renderChallenge(){
+      if(!window.turnstile){
+        if(attempts++<100)return setTimeout(renderChallenge,100);
+        document.getElementById('status').textContent='Verification could not load. Check your connection and try again.';
+        return;
+      }
+      document.getElementById('status').textContent='Complete the verification below.';
+      window.turnstile.render('#turnstile',{
+        sitekey:SITE_KEY,
+        action:'staff_login',
+        appearance:'always',
+        theme:'light',
+        callback(token){document.getElementById('status').textContent='Verified. Returning to the application…';window.captchaBridge.complete(token)},
+        'expired-callback'(){document.getElementById('status').textContent='Verification expired. Please verify again.'},
+        'error-callback'(){document.getElementById('status').textContent='Verification failed to load. Please try again.'}
+      });
+    }
+    document.getElementById('cancel').addEventListener('click',()=>window.captchaBridge.cancel());
+    renderChallenge();
+  </script>
+</body>
+</html>
