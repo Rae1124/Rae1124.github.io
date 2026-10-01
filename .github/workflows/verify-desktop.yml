@@ -1,0 +1,99 @@
+name: Verify Windows Desktop Launch
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/verify-desktop.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Online-Students-ID-Replacement-System-Windows
+          run-id: 36732468122
+          github-token: ${{ github.token }}
+          path: desktop-build
+      - name: Test portable, install, shortcuts, launch and uninstall
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $product = 'Online Students ID Replacement System'
+          $report = New-Object System.Collections.Generic.List[string]
+          New-Item -ItemType Directory -Force -Path smoke-results | Out-Null
+          function Record([string]$text) {
+            $script:report.Add($text)
+            Write-Host $text
+            $script:report | Set-Content smoke-results/results.txt
+          }
+          function Wait-Portal {
+            $until = (Get-Date).AddSeconds(75)
+            do {
+              $windows = @(Get-Process | Where-Object { $_.MainWindowTitle -eq $script:product -and $_.MainWindowHandle -ne 0 })
+              foreach ($window in $windows) {
+                try {
+                  $root = [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
+                  $condition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Choose your portal')
+                  $heading = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+                  if ($null -ne $heading) { return $window }
+                } catch { }
+              }
+              Start-Sleep -Milliseconds 500
+            } while ((Get-Date) -lt $until)
+            throw 'The packaged app did not expose its Choose your portal screen within 75 seconds.'
+          }
+          function Close-App($window) {
+            $null = $window.CloseMainWindow()
+            if (!$window.WaitForExit(15000)) { throw 'Application did not close normally.' }
+          }
+          try {
+            $portable = Start-Process -FilePath '.\desktop-build\Online-Students-ID-Replacement-System-Portable.exe' -ArgumentList '--force-renderer-accessibility' -PassThru
+            $window = Wait-Portal
+            Record 'PASS: Portable EXE launched and its Choose your portal screen was detected through Windows accessibility.'
+            Close-App $window
+            $null = $portable.WaitForExit(20000)
+            Record 'PASS: Portable application closed normally.'
+            $installDir = Join-Path $env:RUNNER_TEMP 'student-id-smoke-install'
+            $setup = Start-Process -FilePath '.\desktop-build\Online-Students-ID-Replacement-System-Setup.exe' -ArgumentList @('/S', "/D=$installDir") -PassThru
+            if (!$setup.WaitForExit(120000)) { throw 'Installer timed out.' }
+            if ($setup.ExitCode -ne 0) { throw "Installer exit code: $($setup.ExitCode)" }
+            $installedExe = Join-Path $installDir "$product.exe"
+            if (!(Test-Path $installedExe)) { throw 'Installed executable was not found.' }
+            Record 'PASS: Silent per-user installation completed and installed EXE exists.'
+            $desktopShortcut = Join-Path ([Environment]::GetFolderPath('Desktop')) "$product.lnk"
+            $startShortcut = Join-Path ([Environment]::GetFolderPath('Programs')) "$product.lnk"
+            if (!(Test-Path $desktopShortcut)) { throw 'Desktop shortcut missing.' }
+            if (!(Test-Path $startShortcut)) { throw 'Start Menu shortcut missing.' }
+            Record 'PASS: Desktop and Start Menu shortcuts exist.'
+            $installed = Start-Process -FilePath $installedExe -ArgumentList '--force-renderer-accessibility' -PassThru
+            $window = Wait-Portal
+            Record 'PASS: Installed EXE launched and its Choose your portal screen was detected through Windows accessibility.'
+            Close-App $window
+            Record 'PASS: Installed application closed normally.'
+            $uninstallers = @(Get-ChildItem $installDir -Filter '*Uninstall*.exe')
+            if ($uninstallers.Count -ne 1) { throw 'Expected one uninstaller.' }
+            $uninstall = Start-Process -FilePath $uninstallers[0].FullName -ArgumentList '/S' -PassThru
+            if (!$uninstall.WaitForExit(120000)) { throw 'Uninstaller timed out.' }
+            if ($uninstall.ExitCode -ne 0) { throw "Uninstaller exit code: $($uninstall.ExitCode)" }
+            $until = (Get-Date).AddSeconds(30)
+            while ((Test-Path $installedExe) -and (Get-Date) -lt $until) { Start-Sleep -Milliseconds 500 }
+            if (Test-Path $installedExe) { throw 'Uninstall left the application executable behind.' }
+            if ((Test-Path $desktopShortcut) -or (Test-Path $startShortcut)) { throw 'Uninstall left a shortcut behind.' }
+            Record 'PASS: Uninstall removed application executable and both shortcuts.'
+            Record 'LIMIT: No live student/staff account operations, CAPTCHA completion or Windows 10 compatibility checks were performed.'
+          } catch {
+            Record ("FAIL: " + $_.Exception.Message)
+            throw
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Windows-Desktop-Smoke-Results
+          path: smoke-results/results.txt
+          if-no-files-found: warn
