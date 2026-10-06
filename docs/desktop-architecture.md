@@ -273,7 +273,7 @@ The desktop build will retain:
 - polished buttons/forms/modals
 - existing Turnstile staff-login UX, adapted to the desktop verification window
 
-No AppDeploy branding or unrelated browser controls will appear in the desktop app.
+The desktop app displays the system’s own branding and controls.
 
 ## 13. Build Automation
 

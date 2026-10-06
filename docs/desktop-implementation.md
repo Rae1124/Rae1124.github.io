@@ -1,6 +1,5 @@
 # Online Students ID Replacement System Desktop Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a Windows Electron desktop version of the existing Online Students ID Replacement System with a bundled renderer, secure staff CAPTCHA flow, existing Supabase backend integration, the approved application icon, and both installer and portable `.exe` outputs.
 
@@ -8,7 +7,7 @@
 
 **Tech Stack:** Electron, Node.js, built-in `node:test`, electron-builder v26, GitHub Actions Windows runner, existing HTML/CSS/JavaScript frontend, existing Supabase Edge Functions, Cloudflare Turnstile.
 
-**Spec:** `docs/superpowers/specs/2026-09-30-electron-desktop-design.md`
+**Spec:** `docs/desktop-architecture.md`
 
 ## Global Constraints
 

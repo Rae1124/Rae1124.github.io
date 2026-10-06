@@ -23,7 +23,7 @@ Use `npm start` after preparing the icon to run during development. Windows buil
 
 ## Required staff verification page
 
-Publish `desktop-captcha.html` at https://rae1124.github.io/desktop-captcha.html before distributing the desktop build. Staff select **Verify I’m Human**; a restricted verification window returns a short-lived token to the existing staff-login backend. Students do not complete CAPTCHA. Tokens are not saved. Existing staff login server configuration and production hostname checks must remain in place.
+Publish `desktop-captcha.html` at https://rae1124.github.io/desktop-captcha.html before distributing the desktop build. All roles use one **School Login** screen. After a valid staff username/email and password are entered, staff select **Verify I’m Human**, complete verification, and select **Login**; a restricted verification window returns a short-lived token to the existing staff-login backend. Students do not complete CAPTCHA. Tokens are not saved. Existing staff login server configuration and production hostname checks must remain in place.
 
 ## Source layout
 
@@ -36,3 +36,19 @@ Publish `desktop-captcha.html` at https://rae1124.github.io/desktop-captcha.html
 Desktop text-entry dialogs replace unsupported browser prompts. Existing backend permissions remain authoritative. No privileged Supabase key or Turnstile secret belongs in this repository.
 
 See [Windows smoke-test checklist](docs/desktop-smoke-test.md) for verification still required before declaring the release fully tested.
+
+## Unified login (1.1.0)
+
+The website and desktop app identify the account role on the server. Students sign in using their Student ID or email; staff use their username or email. The account's stored role determines the dashboard. No portal selection is required.
+
+`id-system-api` returns `requiresCaptcha` for staff credentials without issuing a session. `id-system-staff-login` validates Turnstile before issuing staff sessions and supports older clients that still send a portal. Deploy both functions from `supabase/functions/` before publishing the updated clients. Existing opaque-session authentication and database permissions remain in effect.
+
+The application upload and document viewer use **Affidavit of Loss**. The document payload remains `kind: document`, so existing uploaded records remain readable; PDF/JPG/PNG and the 5 MB per-file limit are retained.
+
+## Data protection
+
+The server determines each account's permissions. Student lists contain only their own applications, and ID Office lists and document access are restricted to the issuance stages. Personal profiles and user administration responses have separate explicit field lists. API responses are marked `no-store`.
+
+Names, remarks, filenames, notifications and other stored text are escaped before display. Document lists load metadata; opening a document requests a new signed URL that expires after two minutes. Application submission verifies file ownership and stored metadata. Uploaded file content must match its PDF, JPEG or PNG signature.
+
+Account details displayed on a page can be inspected by that signed-in user. Browser developer tools are not an access-control boundary; authorization and data minimization are enforced on the server. Server secrets stay in environment variables, and passwords are never included in responses.
