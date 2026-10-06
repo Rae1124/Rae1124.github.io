@@ -1,0 +1,66 @@
+{
+  "name": "online-students-id-replacement-system",
+  "version": "1.1.1",
+  "private": true,
+  "productName": "Online Students ID Replacement System",
+  "description": "School ID replacement desktop client",
+  "author": "Adrielle A. Quiamco",
+  "main": "electron/main.js",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "electron .",
+    "prepare:icon": "node scripts/prepare-icon.js",
+    "build:win": "electron-builder --win --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.17.0",
+    "js-yaml": "4.3.2",
+    "jsdom": "26.1.0",
+    "png-to-ico": "3.0.2"
+  },
+  "build": {
+    "appId": "ph.school.online-students-id-replacement",
+    "productName": "Online Students ID Replacement System",
+    "asar": true,
+    "files": [
+      "electron/**",
+      "renderer/**",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "Online-Students-ID-Replacement-System-Setup.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Online Students ID Replacement System"
+    },
+    "portable": {
+      "artifactName": "Online-Students-ID-Replacement-System-Portable.${ext}"
+    }
+  }
+}
