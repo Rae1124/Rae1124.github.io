@@ -17,7 +17,7 @@ function server(name,role='student',options={}){
    async single(){return {data:request,error:null}},
    then(resolve){let data=table==='users'?[user]:table==='id_requests'?[request]:table==='documents'?[{id:'doc-1',storage_path:options.documentPath||'owner-1/1-document-proof.pdf',kind:'document'}]:[];resolve({data,error:null,count:1})}};return q;},
   rpc:async()=>({data:'ID-001'}),storage:{from:()=>({info:async path=>({data:{size:100,contentType:path.endsWith('.png')?'image/png':'application/pdf'},error:null}),createSignedUrl:async(path,ttl)=>{signed.push({path,ttl});return {data:{signedUrl:'https://example.test/file?token=secret'}}}})}};
- let source=fs.readFileSync('supabase/functions/'+name+'/index.ts','utf8').replace(/^import .*;\n/gm,'');
+ let source=fs.readFileSync('supabase/functions/'+name+'/index.ts','utf8').replace(/^import .*;\r?\n/gm,'');
  const shared='supabase/functions/_shared/data-security.ts';if(fs.existsSync(shared))source=fs.readFileSync(shared,'utf8').replace(/^export /gm,'')+'\n'+source;
  vm.runInNewContext(stripTypeScriptTypes(source),{createClient:()=>db,Deno:{env:{get:()=> 'server-secret'},serve:f=>handle=f},Request,Response,URL,URLSearchParams,TextEncoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
  return {queries,writes,signed,async call(path,method='GET',body){const response=await handle(new Request('https://example.test/'+name+path,{method,headers:{...(options.anonymous?{}:{Authorization:'Bearer valid-token'}),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}));return {status:response.status,headers:response.headers,data:await response.json()}}};

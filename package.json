@@ -15,7 +15,7 @@
   "devDependencies": {
     "electron": "44.5.1",
     "electron-builder": "26.17.0",
-    "js-yaml": "4.1.1",
+    "js-yaml": "4.3.2",
     "jsdom": "26.1.0",
     "png-to-ico": "3.0.2"
   },

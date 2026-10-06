@@ -16,7 +16,7 @@ function backend(name,role,options={}) {
    async insert(row){if(table==='sessions')sessions.push(row);return {error:null}}};return q;
  }};
  const shared=fs.readFileSync('supabase/functions/_shared/data-security.ts','utf8').replace(/^export /gm,'');
- const source=shared+'\n'+fs.readFileSync('supabase/functions/'+name+'/index.ts','utf8').replace(/^import .*;\n/gm,'');
+ const source=shared+'\n'+fs.readFileSync('supabase/functions/'+name+'/index.ts','utf8').replace(/^import .*;\r?\n/gm,'');
  const context={createClient:()=>db,Deno:{env:{get:key=>key==='TURNSTILE_SECRET_KEY'?'test-only-key':'test'},serve:fn=>handler=fn},
   Response,Request,URL,URLSearchParams,TextEncoder,Uint8Array,crypto:webcrypto,atob,btoa,console,
   fetch:async()=>{verified++;return {json:async()=>({success:options.captcha!==false,hostname:options.hostname||'rae1124.github.io',action:'staff_login'})}}};

@@ -37,7 +37,7 @@ Desktop text-entry dialogs replace unsupported browser prompts. Existing backend
 
 See [Windows smoke-test checklist](docs/desktop-smoke-test.md) for verification still required before declaring the release fully tested.
 
-## Unified login (1.1.0)
+## Unified login (1.1.1)
 
 The website and desktop app identify the account role on the server. Students sign in using their Student ID or email; staff use their username or email. The account's stored role determines the dashboard. No portal selection is required.
 
@@ -52,3 +52,5 @@ The server determines each account's permissions. Student lists contain only the
 Names, remarks, filenames, notifications and other stored text are escaped before display. Document lists load metadata; opening a document requests a new signed URL that expires after two minutes. Application submission verifies file ownership and stored metadata. Uploaded file content must match its PDF, JPEG or PNG signature.
 
 Account details displayed on a page can be inspected by that signed-in user. Browser developer tools are not an access-control boundary; authorization and data minimization are enforced on the server. Server secrets stay in environment variables, and passwords are never included in responses.
+
+The October 6, 2026 dependency audit reports no high or critical findings after updating `js-yaml` and `http-cache-semantics`. Eight moderate findings remain in the `sprintf-js` build-tool dependency chain. These development dependencies are not bundled in the installed application. The audit does not replace live account workflow testing or a full security assessment.
