@@ -1,22 +1,24 @@
 # Windows release verification
 
-Automated checks are run by `npm test`. Windows packaging is separate from interactive acceptance testing. Do not mark the following complete without actually exercising the packaged application.
+Version: **1.1.1**
 
-- [x] Native Windows CI passes and includes the installer, portable EXE and unpacked app.
-- [x] Installer installs, creates Desktop/Start Menu shortcuts, launches the portal screen, closes and uninstalls on the Windows runner.
-- [ ] Visually confirm supplied icon on the user's Windows device.
-- [x] Portable EXE launches the portal screen and closes normally on the Windows runner.
+Automated tests and packaged runtime verification run together in **Build Windows Desktop**. The runtime checks use the installer and portable EXE built by that same run.
+
+- [x] All 54 automated checks pass on the Windows runner.
+- [x] Native packaging produces an installer, portable EXE and unpacked application.
+- [x] Portable EXE opens the School Login screen and closes normally.
+- [x] Installer completes per-user installation and creates Desktop/Start Menu shortcuts.
+- [x] Installed EXE opens the School Login screen and closes normally.
+- [x] Uninstall removes the executable and both shortcuts.
+- [ ] Visually confirm the supplied icon on the user's Windows device.
 - [ ] Confirm launch on the user's Windows 10/11 x64 PC.
-- [ ] UI opens from bundled renderer while offline; attempted backend actions show connection error.
-- [ ] Student registration, login, two-file application submission, history, notifications, logout.
-- [ ] Registrar CAPTCHA, login, signed document view, verify/invalid, remarks and review transitions.
-- [ ] ID Office CAPTCHA, login, Processing → Ready for Issuance → Issued.
-- [ ] Administrator CAPTCHA, login, staff creation, password reset, activation, logs.
-- [ ] Session remember/logout behavior and expired CAPTCHA recovery.
-- [ ] Unexpected navigation/popups stay blocked.
+- [ ] Check offline startup and connection-error handling on that device.
+- [ ] Complete student registration, login, two-file submission, history, notifications and logout using test accounts.
+- [ ] Complete Registrar CAPTCHA, login, document viewing and review transitions.
+- [ ] Complete ID Office CAPTCHA, login and Processing → Ready for Issuance → Issued.
+- [ ] Complete Administrator CAPTCHA, login, staff creation, password reset, activation and logs.
+- [ ] Verify remembered sessions, logout, expired CAPTCHA recovery and blocked unexpected navigation in the packaged application.
 
-Prerequisite: publish root `desktop-captcha.html` at https://rae1124.github.io/desktop-captcha.html. This page uses the existing Turnstile public site key. Keep the secret only in the existing server-side staff-login function. No new database is required.
+[Successful build and packaged runtime checks](https://github.com/Rae1124/Rae1124.github.io/actions/runs/37521121931), 6 October 2026 (UTC). Windows accessibility detected the actual School Login heading. No live account records were created or modified. Unchecked items require interactive account or device verification.
 
-Native packaging: https://github.com/Rae1124/Rae1124.github.io/actions/runs/36732468122
-
-Packaged runtime smoke test: https://github.com/Rae1124/Rae1124.github.io/actions/runs/36809889875 — passed on 1 October 2026 using the exact previously built artifact. Windows UI Automation detected the actual portal heading, rather than merely checking for a running process. No live records were created or modified. Unchecked items still require live account/device verification.
+The desktop verification page is published at https://rae1124.github.io/desktop-captcha.html. Keep its Turnstile secret only in the server environment. The public site key is intentionally available to the client.

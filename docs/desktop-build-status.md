@@ -1,58 +1,44 @@
-# Desktop build status — 1 October 2026
+# Desktop release verification — version 1.1.1
 
 Product: **Online Students ID Replacement System**
-Branch: `feature/native-electron-desktop`
-Original baseline: `a81378f1c8023194cf6fe11b5c220617b500d6a3`
+Verified source: `16df1b441ac0d9486c142367325a2a7b2fb1d129`
+Published merge: `30d29a696f9162d11f0db2d5203755be8f114cc5`
+Date: 6 October 2026 (UTC)
 
-## Implemented
+## Changes
 
-- Bundled local frontend, exact approved name and original ID-card/checkmark artwork.
-- Restricted production API bridge and signed document opening.
-- Sandboxed Electron windows, IPC main-frame verification and navigation guards.
-- Separate hosted staff CAPTCHA flow; Student login remains CAPTCHA-free.
-- In-app text-entry dialogs for remarks, document invalidation and temporary passwords.
-- Windows installer/portable build configuration and GitHub Actions workflow.
-- Review fixes: offline views show errors; connection failures preserve remembered sessions; Registrar can approve/reject Under Review applications.
+- One School Login screen for Student, Registrar, ID Office and Administrator accounts; the server chooses the dashboard from the account role.
+- Staff sessions require successful CAPTCHA verification. Students keep their existing login flow.
+- Affidavit of Loss labels in the website and desktop application; existing file records remain compatible.
+- Explicit response field lists, role and ownership checks, private non-cacheable responses, escaped display text, and two-minute document links requested when a document is opened.
+- File ownership, size, type and content-signature validation.
 
-## Evidence
+## Verification evidence
 
-- `npm test`: 20 passing, 0 failing.
-- `node --check`: main process, CAPTCHA coordinator and renderer passed.
-- `git diff --check`: passed.
-- Independent review: no Critical issue; both Important issues reproduced and fixed with failing-then-passing tests.
-- `npm run build:win -- --dir`: succeeded on Linux. Output is a PE32+ Windows x64 GUI executable; app.asar includes the bundled renderer, Electron modules and approved icon.
-- Native Windows build succeeded: https://github.com/Rae1124/Rae1124.github.io/actions/runs/36732468122
-- Windows runner: all 20 tests passed; icon preparation, installer build, portable build, executable existence checks and artifact upload succeeded.
-- Built commit: `c3f564482cf788ec244a5fb97664f71ae8733b1f`; its tree matches the locally reviewed source.
-- Artifact: https://github.com/Rae1124/Rae1124.github.io/actions/runs/36732468122/artifacts/11105975143 (401,530,060 bytes; expires 30 October 2026).
-- Artifact contains `Online-Students-ID-Replacement-System-Setup.exe`, `Online-Students-ID-Replacement-System-Portable.exe` and `win-unpacked/`.
-- User authorized repository writes. Source uploaded to feature/native-electron-desktop; CAPTCHA page published on main at commit `870641b924598a96b972af1a25e1bc327f71fd34`. Pages deployment succeeded; HTTP 200 and exact source match verified on 30 September.
-- Local Linux installer attempt lacked Wine; the successful native Windows build supersedes that local build limitation.
+[Build and Windows runtime checks](https://github.com/Rae1124/Rae1124.github.io/actions/runs/37521121931) passed for the verified source above.
 
-## Packaged Windows runtime verification
+- All 54 automated tests passed, including role routing, staff verification, ownership restrictions, data minimization and text escaping.
+- Native Windows installer and portable EXE built successfully.
+- Windows UI Automation detected the actual **School Login** heading in the portable and installed application.
+- Portable and installed applications closed normally.
+- Per-user installation created both Desktop and Start Menu shortcuts.
+- Uninstall removed the application executable and both shortcuts. Verification waits for all cleanup paths because the uninstaller can remove files and shortcuts at different times.
+- The published main branch also passed its [Windows build and runtime checks](https://github.com/Rae1124/Rae1124.github.io/actions/runs/37521540686) and [Pages deployment](https://github.com/Rae1124/Rae1124.github.io/actions/runs/37521539626).
+- The live website displayed the School Login screen. Anonymous backend requests could not retrieve profiles, applications or user administration data.
 
-Run: https://github.com/Rae1124/Rae1124.github.io/actions/runs/36809889875 — success on 1 October 2026. Tested the exact artifact from build 36732468122 without rebuilding or changing the executable.
+The build workflow now performs packaging and runtime checks together for the artifact it just produced. The separate workflow tied to the October 1 installer has been retired.
 
-- Portable launch: actual `Choose your portal` screen detected through Windows UI Automation.
-- Portable closes normally.
-- Silent per-user installation completes and installed executable exists.
-- Desktop and Start Menu shortcuts exist.
-- Installed app launch: actual portal screen detected through Windows UI Automation.
-- Installed app closes normally.
-- Uninstall removes the executable and both shortcuts.
+## Release files
 
-Scope: Windows GitHub-hosted runner, fresh profile, no live account operations. Icon appearance, live CAPTCHA completion, student/staff workflows and Windows 10-specific compatibility were not tested by this run.
+[Verified Windows artifact](https://github.com/Rae1124/Rae1124.github.io/actions/runs/37521121931/artifacts/11439103281)
 
-## Remaining
+SHA-256:
 
-1. Download and extract the Windows artifact; run Setup.exe to install, or Portable.exe to run without installation.
-2. Test live student/staff logins, CAPTCHA completion and role workflows on the user's Windows PC. Installation, launch and uninstall have now passed automated Windows runner checks; Windows 10 and the user's device remain untested.
+- Setup EXE: `840cf98c41ae2efbda777de86bfb6f248037a5c8820d9837cd9fce2f62da4246`
+- Portable EXE: `dd7b80e1c19ab92047a286f49297fd63e58579302a20d8cbe7c4c693e5575e40`
 
-## Implementation decisions
+## Remaining acceptance checks
 
-- Used behavioral tests where source-string checks would miss defects. Cost: differs from the plan's literal test outlines.
-- Retained the approved file:// renderer with restrictive CSP and sender checks. Cost: a custom-protocol design remains separate work.
-- Replaced unsupported browser prompt() with async in-app dialogs. Cost: small desktop-only UI addition.
-- Left interactive Windows and live backend smoke tests explicitly pending. Cost: this is not a fully validated release until they pass.
+Live student/staff account workflows, CAPTCHA completion, the supplied icon on the user's device, and Windows 10 compatibility still require interactive verification. No real student records were created or modified during these checks. The installer is unsigned and does not include automatic updates.
 
-No minor review findings were deferred. The production backend and existing website UI files were not modified; the desktop CAPTCHA page was added.
+After dependency updates, the recorded audit has no high or critical findings. Eight moderate findings remain in the development-only `sprintf-js` dependency chain; these packages are not bundled into the installed application. Passing these checks is not a full security assessment.
