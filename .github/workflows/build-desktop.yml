@@ -108,9 +108,14 @@ jobs:
             if (!$uninstall.WaitForExit(120000)) { throw 'Uninstaller timed out.' }
             if ($uninstall.ExitCode -ne 0) { throw "Uninstaller exit code: $($uninstall.ExitCode)" }
             $until = (Get-Date).AddSeconds(30)
-            while ((Test-Path $installedExe) -and (Get-Date) -lt $until) { Start-Sleep -Milliseconds 500 }
+            # NSIS can finish executable removal before its shortcut cleanup.
+            do {
+              $remaining = @($installedExe, $desktopShortcut, $startShortcut | Where-Object { Test-Path $_ })
+              if ($remaining.Count -eq 0) { break }
+              Start-Sleep -Milliseconds 500
+            } while ((Get-Date) -lt $until)
             if (Test-Path $installedExe) { throw 'Uninstall left the application executable behind.' }
-            if ((Test-Path $desktopShortcut) -or (Test-Path $startShortcut)) { throw 'Uninstall left a shortcut behind.' }
+            if ((Test-Path $desktopShortcut) -or (Test-Path $startShortcut)) { throw ("Uninstall left a shortcut behind: " + ($remaining -join ', ')) }
             Record 'PASS: Uninstall removed application executable and both shortcuts.'
             Record 'LIMIT: No live student/staff account operations, CAPTCHA completion or Windows 10 compatibility checks were performed.'
           } catch {
