@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendStatusEmail } from '../_shared/status-email.ts';
 import {
   privateHeaders,
   selfProfile,
@@ -505,7 +506,7 @@ Deno.serve(async (req: Request) => {
           !Number.isFinite(size) ||
           size <= 0 ||
           size > 5242880 ||
-          !['application/pdf', 'image/jpeg', 'image/png'].includes(type) ||
+          !['application/pdf', 'image/jpeg', 'image/png'].includes(type || '') ||
           (kind === 'photo' && type === 'application/pdf')
         )
           return err(req, 'Invalid uploaded file.');
@@ -587,6 +588,7 @@ Deno.serve(async (req: Request) => {
       if (!r) return err(req, 'Application not found.', 404);
       const s = String(body.status || ''),
         remarks = String(body.remarks || s);
+      if (s === r.status) return j(req, { success: true });
       if (a.user.role === 'registrar') {
         const valid =
           (s === 'Under Review' && r.status === 'Submitted') ||
@@ -602,27 +604,24 @@ Deno.serve(async (req: Request) => {
           (s === 'Issued' && r.status === 'Ready for Issuance');
         if (!valid) return err(req, 'ID Office status transition not allowed.', 409);
       }
-      const upd: any = { status: s, updated_at: now() };
-      if (a.user.role === 'registrar') upd.registrar_remarks = remarks;
-      if (a.user.role === 'idoffice') upd.id_office_remarks = remarks;
-      if (s === 'Issued') {
-        upd.date_issued = now();
-        upd.processed_by = a.user.id;
-      }
-      await db.from('id_requests').update(upd).eq('id', id);
-      await db.from('application_status_history').insert({
-        request_id: id,
-        status: s,
-        remarks,
-        actor_user_id: a.user.id,
-        actor_role: a.user.role,
-      });
-      await db.from('notifications').insert({
-        user_id: r.student_user_id,
-        request_id: id,
-        title: `Application ${s}`,
-        message: `${r.application_no} is now ${s}. ${remarks}`,
-      });
+      const { data: notificationId, error: statusError } = await db.rpc(
+        'update_request_status_with_notification',
+        {
+          target_request_id: id,
+          expected_status: r.status,
+          next_status: s,
+          actor_id: a.user.id,
+          status_remarks: remarks,
+        },
+      );
+      if (statusError)
+        return err(
+          req,
+          statusError.code === '40001'
+            ? 'The application changed. Refresh and try again.'
+            : 'Could not update application.',
+          statusError.code === '40001' ? 409 : 500,
+        );
       await log(
         a.user,
         'APPLICATION_STATUS_CHANGED',
@@ -631,7 +630,16 @@ Deno.serve(async (req: Request) => {
         r.application_no,
         id,
       );
-      return j(req, { success: true });
+      const email = notificationId
+        ? await sendStatusEmail(db, notificationId)
+        : { status: 'not_requested' };
+      return j(req, { success: true, email });
+    }
+    if (/^\/notifications\/[^/]+\/retry-email$/.test(path) && req.method === 'POST') {
+      const a = await auth(req, ['admin']);
+      if (!a) return err(req, 'Access denied.', 403);
+      const email = await sendStatusEmail(db, path.split('/')[2]);
+      return j(req, { email }, email.status === 'not_found' ? 404 : 200);
     }
     if (path === '/notices' && req.method === 'GET') {
       const a = await auth(req);
