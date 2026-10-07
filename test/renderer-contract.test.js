@@ -1,6 +1,6 @@
+const { loadClient } = require('./helpers/client');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((r) => setImmediate(r));
 async function page(bridge = {}, rememberedToken) {
@@ -12,28 +12,29 @@ async function page(bridge = {}, rememberedToken) {
   if (rememberedToken) w.localStorage.setItem('idrs_token', rememberedToken);
   w.desktopApi = { request: async () => ({}), ...bridge };
   w.alert = () => {};
-  w.eval(fs.readFileSync('renderer/app.js', 'utf8'));
+  dom.clientModules = await loadClient(dom, 'renderer/index.html');
   await tick();
   return dom;
 }
 test('desktop password and remark dialogs accept/cancel without browser prompt', async () => {
   const dom = await page();
   const w = dom.window;
-  const p = w.eval("desktopPrompt('Remark','default')");
-  w.document.getElementById('desktopPromptInput').value = 'Reviewed';
+  const { promptForText } = await dom.clientModules.importModule('platform.js');
+  const p = promptForText('Remark', 'default');
+  w.document.getElementById('promptInput').value = 'Reviewed';
   w.document
-    .getElementById('desktopPromptForm')
+    .getElementById('promptForm')
     .dispatchEvent(new w.Event('submit', { cancelable: true }));
   assert.equal(await p, 'Reviewed');
-  const q = w.eval("desktopPrompt('Temporary password','',true)");
-  assert.equal(w.document.getElementById('desktopPromptInput').type, 'password');
-  w.document.getElementById('desktopPromptCancel').click();
+  const q = promptForText('Temporary password', '', true);
+  assert.equal(w.document.getElementById('promptInput').type, 'password');
+  w.document.getElementById('promptCancel').click();
   assert.equal(await q, null);
   dom.window.close();
 });
 test('offline application view shows connection error instead of permanent loading', async () => {
   const message =
-    'Unable to connect to the Online Students ID Replacement System. Please check your internet connection and try again.';
+    'Unable to connect to the Student ID Replacement System. Please check your internet connection and try again.';
   const dom = await page({
     request: async (q) => {
       if (q.path === '/auth/login')
@@ -45,13 +46,13 @@ test('offline application view shows connection error instead of permanent loadi
     },
   });
   const w = dom.window;
-  w.document.getElementById('id').value = 'student';
-  w.document.getElementById('pw').value = 'Password123';
-  await w.document.getElementById('f').onsubmit({ preventDefault() {} });
+  w.document.getElementById('identifierInput').value = 'student';
+  w.document.getElementById('passwordInput').value = 'Password123';
+  await w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   const unhandled = [];
   const listener = (e) => unhandled.push(e);
   process.on('unhandledRejection', listener);
-  w.document.querySelector('[data-v="My Applications"]').click();
+  w.document.querySelector('[data-view="My Applications"]').click();
   await tick();
   process.off('unhandledRejection', listener);
   assert.match(w.document.getElementById('content').textContent, /Unable to connect/);
@@ -83,13 +84,13 @@ test('Registrar can approve or reject an application under review', async () => 
     },
   });
   const w = dom.window;
-  w.document.getElementById('id').value = 'staff';
-  w.document.getElementById('pw').value = 'Password123';
-  await w.document.getElementById('f').onsubmit({ preventDefault() {} });
+  w.document.getElementById('identifierInput').value = 'staff';
+  w.document.getElementById('passwordInput').value = 'Password123';
+  await w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   await w.document.getElementById('verifyHuman').onclick();
-  await w.document.getElementById('f').onsubmit({ preventDefault() {} });
+  await w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   await tick();
-  w.document.querySelector('[data-v="Applications"]').click();
+  w.document.querySelector('[data-view="Applications"]').click();
   await tick();
   assert.ok(w.document.querySelector('[data-status="Approved"]'), 'Approve missing');
   assert.ok(w.document.querySelector('[data-status="Rejected"]'), 'Reject missing');
@@ -102,7 +103,7 @@ test('offline startup preserves remembered session and explains the connection f
     {
       request: async () => {
         throw Error(
-          'Unable to connect to the Online Students ID Replacement System. Please check your internet connection and try again.',
+          'Unable to connect to the Student ID Replacement System. Please check your internet connection and try again.',
         );
       },
     },

@@ -1,6 +1,6 @@
+const { loadClient } = require('./helpers/client');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -56,12 +56,12 @@ async function page(file, role = 'student', options = {}) {
     };
   }
   w.alert = () => {};
-  w.eval(fs.readFileSync(file, 'utf8'));
+  await loadClient(dom, file);
   await tick();
-  const submit = () => w.document.getElementById('f').onsubmit({ preventDefault() {} });
+  const submit = () => w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   const credentials = () => {
-    w.document.getElementById('id').value = 'test.user';
-    w.document.getElementById('pw').value = 'Password123';
+    w.document.getElementById('identifierInput').value = 'test.user';
+    w.document.getElementById('passwordInput').value = 'Password123';
   };
   const verify = async () => {
     if (w.desktopApi) await w.document.getElementById('verifyHuman').onclick();
@@ -70,11 +70,11 @@ async function page(file, role = 'student', options = {}) {
   return { dom, w, calls, submit, credentials, verify, getCaptcha: () => captcha };
 }
 
-for (const file of ['app.js', 'renderer/app.js']) {
+for (const file of ['app.js', 'renderer/index.html']) {
   test(file + ': opens one login and routes a student without CAPTCHA', async (t) => {
     const p = await page(file);
     t.after(() => p.dom.window.close());
-    assert.ok(p.w.document.getElementById('f'), 'unified login must be the initial screen');
+    assert.ok(p.w.document.getElementById('loginForm'), 'unified login must be the initial screen');
     assert.equal(p.w.document.querySelector('[data-role]'), null);
     p.credentials();
     await p.submit();
@@ -93,9 +93,12 @@ for (const file of ['app.js', 'renderer/app.js']) {
     test(file + ': routes ' + role + ' after required verification', async (t) => {
       const p = await page(file, role);
       t.after(() => p.dom.window.close());
-      assert.ok(p.w.document.getElementById('f'), 'unified login must be the initial screen');
+      assert.ok(
+        p.w.document.getElementById('loginForm'),
+        'unified login must be the initial screen',
+      );
       p.credentials();
-      p.w.document.getElementById('rem').checked = true;
+      p.w.document.getElementById('rememberInput').checked = true;
       await p.submit();
       await tick();
       assert.equal(
@@ -104,18 +107,18 @@ for (const file of ['app.js', 'renderer/app.js']) {
         'challenge must not create a session',
       );
       assert.equal(p.w.document.getElementById('content'), null);
-      assert.equal(p.w.document.getElementById('loginBtn').disabled, true);
+      assert.equal(p.w.document.getElementById('loginButton').disabled, true);
       await p.verify();
       await p.submit();
       await tick();
       assert.equal(p.w.document.querySelector('#content h2').textContent, title);
-      assert.ok(p.w.document.querySelector('[data-v="' + menu + '"]'));
+      assert.ok(p.w.document.querySelector('[data-view="' + menu + '"]'));
       const login = p.calls.find((q) => q.service === 'staff-login');
       assert.equal(login.body.portal, undefined);
       assert.equal(login.body.captchaToken, 'verified-token');
       assert.equal(p.w.localStorage.getItem('idrs_token'), 'staff-session');
       await p.w.document.getElementById('logout').onclick();
-      assert.ok(p.w.document.getElementById('f'));
+      assert.ok(p.w.document.getElementById('loginForm'));
       assert.equal(p.w.document.querySelector('[data-role]'), null);
     });
   }
@@ -125,14 +128,14 @@ for (const file of ['app.js', 'renderer/app.js']) {
       let resolve;
       const p = await page(file, 'registrar', { captcha: () => new Promise((r) => (resolve = r)) });
       t.after(() => p.dom.window.close());
-      assert.ok(p.w.document.getElementById('f'));
+      assert.ok(p.w.document.getElementById('loginForm'));
       p.credentials();
       await p.submit();
       await tick();
       let pending,
         oldCaptcha = p.getCaptcha();
       if (p.w.desktopApi) pending = p.verify();
-      const id = p.w.document.getElementById('id');
+      const id = p.w.document.getElementById('identifierInput');
       id.value = 'different.user';
       id.dispatchEvent(new p.w.Event('input'));
       if (p.w.desktopApi) {
@@ -142,7 +145,7 @@ for (const file of ['app.js', 'renderer/app.js']) {
       await p.submit();
       await tick();
       assert.equal(p.calls.filter((q) => q.service === 'staff-login').length, 0);
-      assert.equal(p.w.document.getElementById('loginBtn').disabled, true);
+      assert.equal(p.w.document.getElementById('loginButton').disabled, true);
       assert.equal(p.w.sessionStorage.getItem('idrs_token'), null);
     },
   );
@@ -153,11 +156,11 @@ for (const file of ['app.js', 'renderer/app.js']) {
       },
     });
     t.after(() => p.dom.window.close());
-    assert.ok(p.w.document.getElementById('f'));
+    assert.ok(p.w.document.getElementById('loginForm'));
     p.credentials();
     await p.submit();
-    assert.match(p.w.document.getElementById('m').textContent, /Invalid credentials/);
-    assert.equal(p.w.document.getElementById('loginBtn').disabled, false);
+    assert.match(p.w.document.getElementById('formMessage').textContent, /Invalid credentials/);
+    assert.equal(p.w.document.getElementById('loginButton').disabled, false);
     assert.equal(p.w.localStorage.getItem('idrs_token'), null);
   });
   test(file + ': rejected staff verification does not save a session', async (t) => {
@@ -167,13 +170,13 @@ for (const file of ['app.js', 'renderer/app.js']) {
       },
     });
     t.after(() => p.dom.window.close());
-    assert.ok(p.w.document.getElementById('f'));
+    assert.ok(p.w.document.getElementById('loginForm'));
     p.credentials();
     await p.submit();
     await p.verify();
     await p.submit();
-    assert.match(p.w.document.getElementById('m').textContent, /verification failed/);
-    assert.equal(p.w.document.getElementById('loginBtn').disabled, true);
+    assert.match(p.w.document.getElementById('formMessage').textContent, /verification failed/);
+    assert.equal(p.w.document.getElementById('loginButton').disabled, true);
     assert.equal(p.w.sessionStorage.getItem('idrs_token'), null);
   });
 }

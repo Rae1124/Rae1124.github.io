@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - '*.js'
+      - '*.html'
+      - '*.css'
+      - 'views/**'
       - 'electron/**'
       - 'renderer/**'
       - 'build/**'
@@ -32,17 +36,17 @@ jobs:
       - name: Verify both executables exist
         shell: pwsh
         run: |
-          if (!(Test-Path 'dist/Online-Students-ID-Replacement-System-Setup.exe')) { throw 'Installer missing' }
-          if (!(Test-Path 'dist/Online-Students-ID-Replacement-System-Portable.exe')) { throw 'Portable missing' }
+          if (!(Test-Path 'dist/Student-ID-Replacement-System-Setup.exe')) { throw 'Installer missing' }
+          if (!(Test-Path 'dist/Student-ID-Replacement-System-Portable.exe')) { throw 'Portable missing' }
           Get-FileHash dist/*.exe -Algorithm SHA256 | Format-Table
       - uses: actions/upload-artifact@v4
         with:
-          name: Online-Students-ID-Replacement-System-Windows
+          name: Student-ID-Replacement-System-Windows
           if-no-files-found: error
           retention-days: 30
           path: |
-            dist/Online-Students-ID-Replacement-System-Setup.exe
-            dist/Online-Students-ID-Replacement-System-Portable.exe
+            dist/Student-ID-Replacement-System-Setup.exe
+            dist/Student-ID-Replacement-System-Portable.exe
             dist/win-unpacked/**
 
       - name: Test portable, install, shortcuts, launch and uninstall
@@ -51,7 +55,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Add-Type -AssemblyName UIAutomationClient
           Add-Type -AssemblyName UIAutomationTypes
-          $product = 'Online Students ID Replacement System'
+          $product = 'Student ID Replacement System'
           $report = New-Object System.Collections.Generic.List[string]
           New-Item -ItemType Directory -Force -Path smoke-results | Out-Null
           function Record([string]$text) {
@@ -80,14 +84,14 @@ jobs:
             if (!$window.WaitForExit(15000)) { throw 'Application did not close normally.' }
           }
           try {
-            $portable = Start-Process -FilePath '.\dist\Online-Students-ID-Replacement-System-Portable.exe' -ArgumentList '--force-renderer-accessibility' -PassThru
+            $portable = Start-Process -FilePath '.\dist\Student-ID-Replacement-System-Portable.exe' -ArgumentList '--force-renderer-accessibility' -PassThru
             $window = Wait-Portal
             Record 'PASS: Portable EXE launched and its School Login screen was detected through Windows accessibility.'
             Close-App $window
             $null = $portable.WaitForExit(20000)
             Record 'PASS: Portable application closed normally.'
             $installDir = Join-Path $env:RUNNER_TEMP 'student-id-smoke-install'
-            $setup = Start-Process -FilePath '.\dist\Online-Students-ID-Replacement-System-Setup.exe' -ArgumentList @('/S', "/D=$installDir") -PassThru
+            $setup = Start-Process -FilePath '.\dist\Student-ID-Replacement-System-Setup.exe' -ArgumentList @('/S', "/D=$installDir") -PassThru
             if (!$setup.WaitForExit(120000)) { throw 'Installer timed out.' }
             if ($setup.ExitCode -ne 0) { throw "Installer exit code: $($setup.ExitCode)" }
             $installedExe = Join-Path $installDir "$product.exe"

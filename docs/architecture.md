@@ -6,13 +6,15 @@ to authorize requests and choose the dashboard after login.
 
 ## Website
 
-GitHub Pages serves `index.html`, `app.js`, `ui.css`, and `ui-enhance.js`.
+GitHub Pages serves `index.html`, the shared ES modules, and `ui.css`.
 The browser calls the Supabase Edge Functions over HTTPS. No privileged database
 credentials are included in the client.
 
 ## Windows application
 
-Electron loads the bundled pages from `renderer/`. The main process handles API
+Electron loads `renderer/index.html`, which imports the same `app.js` and `ui.css`
+used by the website. The packaging configuration includes every shared module.
+The main process handles API
 requests and document opening through a restricted preload bridge. It validates
 the sender, endpoint, method, payload, and destination before allowing access.
 
@@ -58,3 +60,31 @@ for two minutes. Responses containing account or application data use
 
 Keep server credentials and the Turnstile secret in the server environment.
 The project URL and Turnstile site key are public client configuration.
+
+## Client modules
+
+| Module               | Responsibility                                                          |
+| -------------------- | ----------------------------------------------------------------------- |
+| `app.js`             | Application shell, navigation, and role view selection                  |
+| `api.js`             | Requests through HTTP or the restricted desktop bridge                  |
+| `auth.js`            | Login, registration, initial administrator setup, and CAPTCHA lifecycle |
+| `state.js`           | Current account, selected view, and session token storage               |
+| `config.js`          | Public endpoints, product name, program/year options, and site key      |
+| `utils.js`           | Text escaping, signed URL checks, form values, and file encoding        |
+| `ui.js`              | Small render helpers and shared display conventions                     |
+| `platform.js`        | Native browser prompts or desktop modal prompts                         |
+| `views/student.js`   | Student profile, application form, and notifications                    |
+| `views/staff.js`     | Registrar and ID Office dashboards                                      |
+| `views/admin.js`     | Administrative dashboard, accounts, and logs                            |
+| `views/requests.js`  | Request tables and status changes                                       |
+| `views/documents.js` | Document metadata, previews, and review actions                         |
+
+The frontend uses descriptive camelCase identifiers. API field names such as
+`student_id` and `document_id` retain their existing wire format. Render helpers
+escape server-provided text and attributes. Navigation icons are static inline
+SVG. Subtitles, badge classes, and table containers are created during rendering;
+there is no DOM observer that patches completed screens.
+
+The Electron application ID, persistent partition, and existing user-data folder
+remain stable across the display-name change. Main-process and preload scripts
+remain CommonJS; only the unprivileged interface uses browser ES modules.

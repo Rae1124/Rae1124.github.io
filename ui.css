@@ -38,6 +38,9 @@ select,
 textarea {
   font: inherit;
 }
+small {
+  font-size: 14px;
+}
 button {
   transition:
     background 0.18s ease,
@@ -102,7 +105,7 @@ textarea:focus-visible {
 }
 .eyebrow {
   display: block;
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 0.17em;
   font-weight: 800;
   color: #3970b8;
@@ -132,7 +135,7 @@ textarea:focus-visible {
   margin-top: 26px;
 }
 .points span {
-  font-size: 12px;
+  font-size: 14px;
   color: #edf5ff;
 }
 .panelWrap {
@@ -156,7 +159,7 @@ textarea:focus-visible {
   margin: 8px 0;
 }
 .muted {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
   line-height: 1.65;
 }
@@ -173,7 +176,7 @@ textarea:focus-visible {
   background: transparent;
   color: var(--blue);
   padding: 0;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.3;
   cursor: pointer;
@@ -181,52 +184,6 @@ textarea:focus-visible {
 .back:hover {
   color: var(--navy);
   transform: translateX(-2px);
-}
-.rolegrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin: 23px 0;
-}
-.role {
-  display: grid;
-  grid-template-columns: 42px 1fr 20px;
-  align-items: center;
-  column-gap: 11px;
-  background: var(--surface-soft);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 15px;
-  color: #334e6d;
-  text-align: left;
-  cursor: pointer;
-}
-.role:hover {
-  background: #f2f7fd;
-  border-color: #b9d1ec;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-.role .icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  background: #e6f0fb;
-  color: var(--blue);
-  display: grid;
-  place-items: center;
-}
-.role b {
-  display: block;
-  font-size: 12px;
-  line-height: 1.35;
-}
-.role small {
-  display: block;
-  font-size: 9px;
-  line-height: 1.4;
-  color: #8491a2;
-  margin-top: 3px;
 }
 .form {
   display: grid;
@@ -236,7 +193,7 @@ textarea:focus-visible {
 .form label {
   display: grid;
   gap: 7px;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.4;
   color: #526176;
@@ -271,14 +228,14 @@ textarea:focus-visible {
   min-height: 96px;
   resize: vertical;
 }
-.remember {
-  display: flex !important;
+.form .remember {
+  display: flex;
   align-items: center;
-  gap: 8px !important;
-  font-weight: 500 !important;
-  color: var(--muted) !important;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--muted);
 }
-.remember input {
+.form .remember input {
   width: auto;
 }
 .primary,
@@ -289,7 +246,7 @@ textarea:focus-visible {
   font-weight: 750;
   line-height: 1.2;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
 }
 .primary {
   border: 1px solid var(--blue);
@@ -340,11 +297,11 @@ textarea:focus-visible {
   background: transparent;
   color: var(--blue);
   padding: 0;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
 }
-.grid2 {
+.formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -355,7 +312,7 @@ textarea:focus-visible {
 .msg {
   padding: 10px 11px;
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.5;
 }
 .error {
@@ -373,7 +330,7 @@ textarea:focus-visible {
   padding-top: 15px;
   border-top: 1px solid #edf0f4;
   color: #9aa3ae;
-  font-size: 9px;
+  font-size: 14px;
   text-align: center;
   line-height: 1.4;
 }
@@ -386,12 +343,12 @@ textarea:focus-visible {
   gap: 8px;
 }
 .captchaLabel {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 800;
   color: #506078;
 }
 .captchaHint {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   line-height: 1.45;
 }
@@ -405,6 +362,7 @@ textarea:focus-visible {
   background: var(--page);
 }
 .topbar {
+  justify-content: space-between;
   min-height: 76px;
   background: linear-gradient(90deg, var(--navy-2), var(--navy));
   color: #fff;
@@ -426,7 +384,7 @@ textarea:focus-visible {
   border: 1px solid rgba(255, 255, 255, 0.14);
   display: grid;
   place-items: center;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: 0.05em;
   flex: 0 0 auto;
@@ -446,7 +404,7 @@ textarea:focus-visible {
   color: #d4e4f5;
   margin-top: 4px;
   line-height: 1.4;
-  font-size: 10px;
+  font-size: 14px;
 }
 .topbar #logout {
   margin-left: auto;
@@ -480,7 +438,7 @@ textarea:focus-visible {
   display: block;
   margin: 0 12px 10px;
   color: #9aa7b8;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -499,7 +457,7 @@ textarea:focus-visible {
   cursor: pointer;
   line-height: 1.35;
   margin: 2px 0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   position: relative;
 }
@@ -528,9 +486,13 @@ textarea:focus-visible {
   background: #f0f4f9;
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: 14px;
   color: #60758f;
   flex: 0 0 auto;
+}
+.navIcon svg {
+  width: 18px;
+  height: 18px;
 }
 .side button.active .navIcon {
   background: #dceafb;
@@ -554,7 +516,7 @@ textarea:focus-visible {
 .pageSubtitle {
   margin: 7px 0 22px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.55;
 }
 .sectionHead {
@@ -575,6 +537,13 @@ textarea:focus-visible {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 20px 0;
+}
+.stat .statText {
+  font-size: 14px;
+}
+.noticeItem {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
 }
 .stat,
 .panel {
@@ -599,7 +568,7 @@ textarea:focus-visible {
 }
 .stat span {
   display: block;
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.4;
   color: var(--muted);
   font-weight: 700;
@@ -624,14 +593,14 @@ textarea:focus-visible {
 }
 .tablePanel {
   padding: 0;
-  overflow: hidden !important;
+  overflow: auto;
   box-shadow: var(--shadow);
 }
 .table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 11px;
+  font-size: 14px;
 }
 .table th,
 .table td {
@@ -644,7 +613,7 @@ textarea:focus-visible {
 .table th {
   background: #fbfcfe;
   color: #76859a;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -672,7 +641,7 @@ textarea:focus-visible {
 .table .primary,
 .table .danger {
   padding: 8px 11px;
-  font-size: 10px;
+  font-size: 14px;
   white-space: nowrap;
 }
 .badge {
@@ -683,7 +652,7 @@ textarea:focus-visible {
   border-radius: 999px;
   background: #edf3f8;
   color: #4d6076;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1.2;
   white-space: nowrap;
@@ -734,13 +703,13 @@ textarea:focus-visible {
 .profileGrid span {
   display: block;
   color: #8b98a9;
-  font-size: 9px;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
 }
 .profileGrid b {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.4;
   color: #273a52;
   display: block;
@@ -784,19 +753,19 @@ textarea:focus-visible {
   align-items: flex-start;
 }
 .docName {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1.4;
   word-break: break-word;
 }
 .docMeta {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   line-height: 1.5;
   margin-top: 4px;
 }
 .docStatus {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
   margin-top: 4px;
 }
@@ -857,9 +826,6 @@ textarea:focus-visible {
   .content {
     padding: 24px 18px 40px;
   }
-  .tablePanel {
-    overflow: auto !important;
-  }
 }
 @media (max-width: 600px) {
   .card {
@@ -869,8 +835,7 @@ textarea:focus-visible {
   .panelWrap {
     padding: 18px;
   }
-  .rolegrid,
-  .grid2,
+  .formGrid,
   .profileGrid {
     grid-template-columns: 1fr;
   }
@@ -890,9 +855,6 @@ textarea:focus-visible {
   .topbar h1 {
     font-size: 14px;
   }
-  .topbar small {
-    font-size: 9px;
-  }
   .content {
     padding: 20px 13px 36px;
   }
@@ -901,9 +863,6 @@ textarea:focus-visible {
   }
   .panel {
     padding: 15px;
-  }
-  .table {
-    font-size: 10px;
   }
   .sectionHead,
   .docTop {
