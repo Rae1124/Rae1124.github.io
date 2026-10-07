@@ -7,7 +7,7 @@
   "author": "Adrielle A. Quiamco",
   "main": "electron/main.js",
   "scripts": {
-    "test": "node --test test/*.test.js",
+    "test": "node --experimental-vm-modules --test test/*.test.js",
     "start": "electron .",
     "prepare:icon": "node scripts/prepare-icon.js",
     "build:win": "electron-builder --win --x64 --publish never",
@@ -29,6 +29,10 @@
     "files": [
       "electron/**",
       "renderer/**",
+      "api.js",
+      "config.js",
+      "state.js",
+      "utils.js",
       "ui.css",
       "build/icon.ico",
       "package.json"

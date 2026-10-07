@@ -1,6 +1,6 @@
+const { loadClient } = require('./helpers/client');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((r) => setImmediate(r));
 async function page(bridge = {}, rememberedToken) {
@@ -12,20 +12,21 @@ async function page(bridge = {}, rememberedToken) {
   if (rememberedToken) w.localStorage.setItem('idrs_token', rememberedToken);
   w.desktopApi = { request: async () => ({}), ...bridge };
   w.alert = () => {};
-  w.eval(fs.readFileSync('renderer/app.js', 'utf8'));
+  dom.clientModules = await loadClient(dom, 'renderer/app.js');
   await tick();
   return dom;
 }
 test('desktop password and remark dialogs accept/cancel without browser prompt', async () => {
   const dom = await page();
   const w = dom.window;
-  const p = w.eval("desktopPrompt('Remark','default')");
+  const { desktopPrompt } = await dom.clientModules.importModule('renderer/app.js');
+  const p = desktopPrompt('Remark', 'default');
   w.document.getElementById('desktopPromptInput').value = 'Reviewed';
   w.document
     .getElementById('desktopPromptForm')
     .dispatchEvent(new w.Event('submit', { cancelable: true }));
   assert.equal(await p, 'Reviewed');
-  const q = w.eval("desktopPrompt('Temporary password','',true)");
+  const q = desktopPrompt('Temporary password', '', true);
   assert.equal(w.document.getElementById('desktopPromptInput').type, 'password');
   w.document.getElementById('desktopPromptCancel').click();
   assert.equal(await q, null);

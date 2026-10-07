@@ -1,6 +1,6 @@
+const { loadClient } = require('./helpers/client');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -56,7 +56,7 @@ async function page(file, role = 'student', options = {}) {
     };
   }
   w.alert = () => {};
-  w.eval(fs.readFileSync(file, 'utf8'));
+  await loadClient(dom, file);
   await tick();
   const submit = () => w.document.getElementById('f').onsubmit({ preventDefault() {} });
   const credentials = () => {

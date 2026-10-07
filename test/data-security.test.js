@@ -1,3 +1,4 @@
+const { loadClient } = require('./helpers/client');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -326,7 +327,7 @@ for (const file of ['app.js', 'renderer/app.js'])
         ok: true,
         json: async () => result(url.split('/id-system-api')[1]),
       });
-    w.eval(fs.readFileSync(file, 'utf8'));
+    await loadClient(dom, file);
     await tick();
     assert.equal(w.document.querySelectorAll('img,script').length, 0);
     assert.ok(w.document.body.textContent.includes(attack));
