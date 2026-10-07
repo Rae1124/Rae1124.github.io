@@ -39,7 +39,7 @@ test('network, backend, and malformed JSON responses never become a false succes
     r(q, async () => {
       throw Error('socket detail');
     }),
-    /Unable to connect to the Online Students ID Replacement System/,
+    /Unable to connect to the Student ID Replacement System/,
   );
   await assert.rejects(
     r(q, async () => new Response('{"error":"Not authorized"}', { status: 401 })),

@@ -1,7 +1,7 @@
 'use strict';
 const { PROJECT_ORIGIN, SERVICES, normalizeApiRequest } = require('./security');
 const CONNECTION_ERROR =
-  'Unable to connect to the Online Students ID Replacement System. Please check your internet connection and try again.';
+  'Unable to connect to the Student ID Replacement System. Please check your internet connection and try again.';
 async function requestProductionApi(input, fetchImpl = fetch) {
   const q = normalizeApiRequest(input);
   const headers = { 'Content-Type': 'application/json' };

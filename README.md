@@ -1,4 +1,4 @@
-# Online Students ID Replacement System
+# Student ID Replacement System
 
 A school ID replacement service for students, the Registrar, the ID Office, and
 Administrators. The website and Windows application use the same accounts and
@@ -40,9 +40,9 @@ npm run build:win
 
 The `dist/` directory contains:
 
-- `Online-Students-ID-Replacement-System-Setup.exe`: installer with Desktop and
+- `Student-ID-Replacement-System-Setup.exe`: installer with Desktop and
   Start Menu shortcuts.
-- `Online-Students-ID-Replacement-System-Portable.exe`: application that runs
+- `Student-ID-Replacement-System-Portable.exe`: application that runs
   without installation.
 - `win-unpacked/`: unpacked application files.
 

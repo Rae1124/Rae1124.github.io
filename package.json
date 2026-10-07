@@ -1,8 +1,8 @@
 {
-  "name": "online-students-id-replacement-system",
+  "name": "student-id-replacement-system",
   "version": "1.1.2",
   "private": true,
-  "productName": "Online Students ID Replacement System",
+  "productName": "Student ID Replacement System",
   "description": "School ID replacement desktop client",
   "author": "Adrielle A. Quiamco",
   "main": "electron/main.js",
@@ -24,7 +24,7 @@
   },
   "build": {
     "appId": "ph.school.online-students-id-replacement",
-    "productName": "Online Students ID Replacement System",
+    "productName": "Student ID Replacement System",
     "asar": true,
     "files": [
       "electron/**",
@@ -55,16 +55,16 @@
       ]
     },
     "nsis": {
-      "artifactName": "Online-Students-ID-Replacement-System-Setup.${ext}",
+      "artifactName": "Student-ID-Replacement-System-Setup.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Online Students ID Replacement System"
+      "shortcutName": "Student ID Replacement System"
     },
     "portable": {
-      "artifactName": "Online-Students-ID-Replacement-System-Portable.${ext}"
+      "artifactName": "Student-ID-Replacement-System-Portable.${ext}"
     }
   }
 }

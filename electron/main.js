@@ -9,7 +9,9 @@ const { registerHandler } = require('./ipc');
 const rendererPath = path.join(__dirname, '../renderer/index.html');
 const rendererUrl = pathToFileURL(rendererPath).href;
 let mainWindow;
-app.setName('Online Students ID Replacement System');
+app.setName('Student ID Replacement System');
+// Keep existing desktop sessions when the display name changes.
+app.setPath('userData', path.join(app.getPath('appData'), 'Online Students ID Replacement System'));
 app.setAppUserModelId('ph.school.online-students-id-replacement');
 function createMainWindow() {
   mainWindow = new BrowserWindow(mainWindowOptions({ packaged: app.isPackaged }));

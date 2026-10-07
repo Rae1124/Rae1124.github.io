@@ -16,7 +16,7 @@ function mainWindowOptions({ packaged = false } = {}) {
     height: 850,
     minWidth: 800,
     minHeight: 620,
-    title: 'Online Students ID Replacement System',
+    title: 'Student ID Replacement System',
     icon: path.join(__dirname, '../build/icon.ico'),
     autoHideMenuBar: true,
     backgroundColor: '#f3f7fc',

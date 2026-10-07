@@ -121,7 +121,7 @@ function clearToken() {
   sessionStorage.removeItem('idrs_token');
 }
 function loginShell(inner) {
-  root.innerHTML = `<div class="page"><section class="hero"><div class="seal">🎓</div><span class="eyebrow">ONLINE STUDENT SERVICES</span><h1>Online Students ID<br>Replacement System</h1><p>Fast, convenient, and secure online ID replacement processing for students and authorized school personnel.</p><div class="points"><span>✓ School-managed user accounts</span><span>✓ Role-based access control</span><span>✓ Online application and status tracking</span></div></section><main class="panelWrap"><div class="card">${inner}</div></main></div>`;
+  root.innerHTML = `<div class="page"><section class="hero"><div class="seal" aria-hidden="true">ID</div><span class="eyebrow">ONLINE STUDENT SERVICES</span><h1>Student ID Replacement System</h1><p>Submit an ID replacement request, upload the required files, and track its status.</p><div class="points"><span>Student registration</span><span>Staff review and processing</span><span>Application status tracking</span></div></section><main class="panelWrap"><div class="card">${inner}</div></main></div>`;
 }
 function authHead(backText, label) {
   return `<div class="authHead"><button class="back" id="back">← ${backText}</button><span class="eyebrow">${label}</span></div>`;
@@ -223,7 +223,7 @@ function login(msg = '') {
   resetCaptchaState();
 
   loginShell(
-    `<span class="eyebrow">SECURE SCHOOL LOGIN</span><h2>School Login</h2><p class="muted">Sign in to access your account and dashboard.</p><form class="form" id="f"><label>Student ID, Username, or Email<input id="id" required autocomplete="username" autocapitalize="none" spellcheck="false"></label><label>Password<input id="pw" type="password" required autocomplete="current-password"></label><div id="staffVerification"></div><label class="remember"><input id="rem" type="checkbox"> Remember me on this device</label><div id="m" aria-live="polite"></div><button id="loginBtn" class="primary wide">Login</button></form><div class="links" id="loginLinks"><button id="reg" type="button">Create Student Profile</button><button id="forgot" type="button">Forgot Password?</button></div><div class="footer">Online Students ID Replacement System</div>`,
+    `<span class="eyebrow">SECURE SCHOOL LOGIN</span><h2>School Login</h2><p class="muted">Sign in to access your account and dashboard.</p><form class="form" id="f"><label>Student ID, Username, or Email<input id="id" required autocomplete="username" autocapitalize="none" spellcheck="false"></label><label>Password<input id="pw" type="password" required autocomplete="current-password"></label><div id="staffVerification"></div><label class="remember"><input id="rem" type="checkbox"> Remember me on this device</label><div id="m" aria-live="polite"></div><button id="loginBtn" class="primary wide">Login</button></form><div class="links" id="loginLinks"><button id="reg" type="button">Create Student Profile</button><button id="forgot" type="button">Forgot Password?</button></div><div class="footer">Student ID Replacement System</div>`,
   );
   const form = document.getElementById('f'),
     identifier = document.getElementById('id'),
@@ -401,7 +401,7 @@ async function loadMe() {
     sessionState.user = d.user;
     return true;
   } catch (e) {
-    if (e.message.startsWith('Unable to connect to the Online Students ID Replacement System.'))
+    if (e.message.startsWith('Unable to connect to the Student ID Replacement System.'))
       startupConnectionError = e.message;
     else clearToken();
     return false;
@@ -415,7 +415,7 @@ function menu() {
   return ['Dashboard', 'Applications'];
 }
 function app() {
-  root.innerHTML = `<div class="app"><div class="topbar"><div><h1>Online Students ID Replacement System</h1><small>${escapeHTML(sessionState.user.first_name)} ${escapeHTML(sessionState.user.last_name)} · ${roleLabel(sessionState.user.role)}</small></div><button class="outline" id="logout">Logout</button></div><div class="layout"><aside class="side">${menu()
+  root.innerHTML = `<div class="app"><div class="topbar"><div><h1>Student ID Replacement System</h1><small>${escapeHTML(sessionState.user.first_name)} ${escapeHTML(sessionState.user.last_name)} · ${roleLabel(sessionState.user.role)}</small></div><button class="outline" id="logout">Logout</button></div><div class="layout"><aside class="side">${menu()
     .map(
       (x) =>
         `<button data-v="${x}" class="${sessionState.view === x ? 'active' : ''}">${x}</button>`,
@@ -556,7 +556,7 @@ async function showDocuments(requestId, appNo) {
   try {
     const d = await docApi(`?request_id=${encodeURIComponent(requestId)}&metadata_only=true`);
     docBody.innerHTML = d.documents.length
-      ? `<div class="docList">${d.documents.map((x) => `<div class="docItem"><div class="docTop"><div><div class="docName">${x.kind === 'photo' ? 'ID Photo' : 'Affidavit of Loss'} — ${escapeHTML(x.file_name)}</div><div class="docMeta">${escapeHTML(x.content_type)} · ${(Number(x.size_bytes || 0) / 1024).toFixed(1)} KB</div><div class="docStatus">${escapeHTML(x.verified ? '✓ Verified' : x.invalid_reason ? '⚠ Invalid: ' + x.invalid_reason : 'Not yet reviewed')}</div></div><div class="actions">${x.can_view || x.view_url ? `<button class="outline" data-view="${escapeHTML(x.id)}">View</button>` : '<span class="muted">Preview unavailable</span>'}${['registrar', 'admin'].includes(sessionState.user.role) ? `<button class="primary" data-verify="${escapeHTML(x.id)}">Verify</button><button class="danger" data-invalid="${escapeHTML(x.id)}">Mark Invalid</button>` : ''}</div></div></div>`).join('')}</div>`
+      ? `<div class="docList">${d.documents.map((x) => `<div class="docItem"><div class="docTop"><div><div class="docName">${x.kind === 'photo' ? 'ID Photo' : 'Affidavit of Loss'} — ${escapeHTML(x.file_name)}</div><div class="docMeta">${escapeHTML(x.content_type)} · ${(Number(x.size_bytes || 0) / 1024).toFixed(1)} KB</div><div class="docStatus">${escapeHTML(x.verified ? 'Verified' : x.invalid_reason ? 'Invalid: ' + x.invalid_reason : 'Not yet reviewed')}</div></div><div class="actions">${x.can_view || x.view_url ? `<button class="outline" data-view="${escapeHTML(x.id)}">View</button>` : '<span class="muted">Preview unavailable</span>'}${['registrar', 'admin'].includes(sessionState.user.role) ? `<button class="primary" data-verify="${escapeHTML(x.id)}">Verify</button><button class="danger" data-invalid="${escapeHTML(x.id)}">Mark Invalid</button>` : ''}</div></div></div>`).join('')}</div>`
       : '<div class="panel">No uploaded documents found.</div>';
     document.querySelectorAll('[data-view]').forEach(
       (b) =>

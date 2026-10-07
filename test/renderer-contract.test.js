@@ -33,7 +33,7 @@ test('desktop password and remark dialogs accept/cancel without browser prompt',
 });
 test('offline application view shows connection error instead of permanent loading', async () => {
   const message =
-    'Unable to connect to the Online Students ID Replacement System. Please check your internet connection and try again.';
+    'Unable to connect to the Student ID Replacement System. Please check your internet connection and try again.';
   const dom = await page({
     request: async (q) => {
       if (q.path === '/auth/login')
@@ -102,7 +102,7 @@ test('offline startup preserves remembered session and explains the connection f
     {
       request: async () => {
         throw Error(
-          'Unable to connect to the Online Students ID Replacement System. Please check your internet connection and try again.',
+          'Unable to connect to the Student ID Replacement System. Please check your internet connection and try again.',
         );
       },
     },
