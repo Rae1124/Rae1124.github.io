@@ -29,6 +29,7 @@
     "files": [
       "electron/**",
       "renderer/**",
+      "ui.css",
       "build/icon.ico",
       "package.json"
     ],

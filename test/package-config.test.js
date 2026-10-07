@@ -15,11 +15,6 @@ test('Windows packaging includes the bundled app, installer and portable targets
     p.build.portable.artifactName,
     'Online-Students-ID-Replacement-System-Portable.${ext}',
   );
-  for (const f of [
-    'renderer/index.html',
-    'renderer/app.js',
-    'renderer/ui.css',
-    'renderer/ui-enhance.js',
-  ])
+  for (const f of ['renderer/index.html', 'renderer/app.js', 'ui.css', 'renderer/ui-enhance.js'])
     assert.ok(fs.existsSync(f), f);
 });
