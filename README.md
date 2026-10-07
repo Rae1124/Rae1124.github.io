@@ -14,6 +14,8 @@ application records.
 - Registrar review and ID Office processing through issuance.
 - Staff account management and activity logs for Administrators.
 - CAPTCHA verification for staff sign-in.
+- SMTP email notifications for Ready for Issuance and Documents Required, once
+  a sender account is configured on the server.
 
 ## Development
 
@@ -87,3 +89,6 @@ controls, and [Testing](docs/testing.md) for account and release checks.
 
 See [Client refactor notes](docs/client-refactor.md) for the behavior changes and
 endpoint-by-endpoint server enforcement requirements.
+
+See [Email notifications](docs/email-notifications.md) for SMTP sender setup,
+delivery records, and retry instructions.
