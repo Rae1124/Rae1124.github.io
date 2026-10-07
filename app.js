@@ -3,8 +3,7 @@ const DOC_API = 'https://rpaaagfgyauqeyrqollr.supabase.co/functions/v1/id-system
 const STAFF_LOGIN_API =
   'https://rpaaagfgyauqeyrqollr.supabase.co/functions/v1/id-system-staff-login';
 const TURNSTILE_SITE_KEY = '0x4AAAAAAFKA_EpytVI2BhzZ';
-const S = {
-  role: null,
+const sessionState = {
   user: null,
   token: localStorage.getItem('idrs_token') || sessionStorage.getItem('idrs_token') || '',
   view: 'Dashboard',
@@ -49,12 +48,10 @@ const roleLabel = (r) =>
       : r === 'idoffice'
         ? 'ID Office'
         : 'Administrator';
-const icon = (r) =>
-  r === 'student' ? '👤' : r === 'registrar' ? '🏢' : r === 'idoffice' ? '💳' : '🛡️';
 
 async function api(path, opt = {}) {
   const h = { 'Content-Type': 'application/json', ...(opt.headers || {}) };
-  if (S.token) h.Authorization = 'Bearer ' + S.token;
+  if (sessionState.token) h.Authorization = 'Bearer ' + sessionState.token;
   const r = await fetch(API + path, { ...opt, headers: h });
   let d = {};
   try {
@@ -65,7 +62,7 @@ async function api(path, opt = {}) {
 }
 async function docApi(query = '', opt = {}) {
   const h = { 'Content-Type': 'application/json', ...(opt.headers || {}) };
-  if (S.token) h.Authorization = 'Bearer ' + S.token;
+  if (sessionState.token) h.Authorization = 'Bearer ' + sessionState.token;
   const r = await fetch(DOC_API + query, { ...opt, headers: h });
   let d = {};
   try {
@@ -88,14 +85,14 @@ async function staffLoginApi(payload) {
   return d;
 }
 function saveToken(t, remember) {
-  S.token = t;
+  sessionState.token = t;
   (remember ? localStorage : sessionStorage).setItem('idrs_token', t);
   (remember ? sessionStorage : localStorage).removeItem('idrs_token');
 }
 function clearToken() {
-  S.token = '';
-  S.user = null;
-  S.role = null;
+  sessionState.token = '';
+  sessionState.user = null;
+
   document.querySelectorAll('.modal').forEach((modal) => modal.remove());
   localStorage.removeItem('idrs_token');
   sessionStorage.removeItem('idrs_token');
@@ -111,13 +108,13 @@ let captchaExpiry;
 function resetCaptchaState() {
   captchaGeneration++;
   clearTimeout(captchaExpiry);
-  if (window.turnstile && S.captchaWidgetId !== null) {
+  if (window.turnstile && sessionState.captchaWidgetId !== null) {
     try {
-      window.turnstile.remove(S.captchaWidgetId);
+      window.turnstile.remove(sessionState.captchaWidgetId);
     } catch {}
   }
-  S.captchaToken = '';
-  S.captchaWidgetId = null;
+  sessionState.captchaToken = '';
+  sessionState.captchaWidgetId = null;
 }
 function setStaffLoginEnabled(enabled) {
   const button = document.getElementById('loginBtn');
@@ -137,7 +134,7 @@ function renderStaffCaptcha(attempt = 0, generation = captchaGeneration) {
       try {
         const token = await window.desktopApi.requestCaptcha();
         if (generation !== captchaGeneration) return;
-        S.captchaToken = token;
+        sessionState.captchaToken = token;
         status.textContent = ' Verified';
         setStaffLoginEnabled(true);
         clearTimeout(captchaExpiry);
@@ -146,7 +143,7 @@ function renderStaffCaptcha(attempt = 0, generation = captchaGeneration) {
         }, 240000);
       } catch (e) {
         if (generation === captchaGeneration) {
-          S.captchaToken = '';
+          sessionState.captchaToken = '';
           setStaffLoginEnabled(false);
           status.textContent = e.message;
         }
@@ -157,7 +154,7 @@ function renderStaffCaptcha(attempt = 0, generation = captchaGeneration) {
     return;
   }
   if (window.turnstile && typeof window.turnstile.render === 'function') {
-    S.captchaWidgetId = window.turnstile.render(holder, {
+    sessionState.captchaWidgetId = window.turnstile.render(holder, {
       sitekey: TURNSTILE_SITE_KEY,
       action: 'staff_login',
       appearance: 'always',
@@ -165,19 +162,19 @@ function renderStaffCaptcha(attempt = 0, generation = captchaGeneration) {
       size: 'flexible',
       callback(token) {
         if (generation === captchaGeneration) {
-          S.captchaToken = token;
+          sessionState.captchaToken = token;
           setStaffLoginEnabled(true);
         }
       },
       'expired-callback'() {
         if (generation === captchaGeneration) {
-          S.captchaToken = '';
+          sessionState.captchaToken = '';
           setStaffLoginEnabled(false);
         }
       },
       'error-callback'() {
         if (generation === captchaGeneration) {
-          S.captchaToken = '';
+          sessionState.captchaToken = '';
           setStaffLoginEnabled(false);
           const m = document.getElementById('m');
           if (m)
@@ -199,12 +196,9 @@ function resetStaffCaptcha() {
   setStaffLoginEnabled(false);
   renderStaffCaptcha();
 }
-function portals() {
-  login();
-}
 function login(msg = '') {
   resetCaptchaState();
-  S.role = null;
+
   loginShell(
     `<span class="eyebrow">SECURE SCHOOL LOGIN</span><h2>School Login</h2><p class="muted">Sign in to access your account and dashboard.</p><form class="form" id="f"><label>Student ID, Username, or Email<input id="id" required autocomplete="username" autocapitalize="none" spellcheck="false"></label><label>Password<input id="pw" type="password" required autocomplete="current-password"></label><div id="staffVerification"></div><label class="remember"><input id="rem" type="checkbox"> Remember me on this device</label><div id="m" aria-live="polite"></div><button id="loginBtn" class="primary wide">Login</button></form><div class="links" id="loginLinks"><button id="reg" type="button">Create Student Profile</button><button id="forgot" type="button">Forgot Password?</button></div><div class="footer">Online Students ID Replacement System</div>`,
   );
@@ -260,7 +254,7 @@ function login(msg = '') {
       showMessage('Enter your login ID and password.');
       return;
     }
-    if (requiresCaptcha && !S.captchaToken) {
+    if (requiresCaptcha && !sessionState.captchaToken) {
       showMessage('Complete the human verification before logging in.');
       return;
     }
@@ -276,7 +270,7 @@ function login(msg = '') {
     button.textContent = 'Signing in…';
     try {
       const data = requiresCaptcha
-        ? await staffLoginApi({ ...payload, captchaToken: S.captchaToken })
+        ? await staffLoginApi({ ...payload, captchaToken: sessionState.captchaToken })
         : await api('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
       if (!form.isConnected || generation !== captchaGeneration) return;
       if (data.requiresCaptcha) {
@@ -294,9 +288,9 @@ function login(msg = '') {
         throw Error('Unable to sign in. Please try again.');
       resetCaptchaState();
       saveToken(data.token, payload.remember);
-      S.user = data.user;
-      S.role = data.user.role;
-      S.view = 'Dashboard';
+      sessionState.user = data.user;
+
+      sessionState.view = 'Dashboard';
       app();
     } catch (e) {
       if (!form.isConnected || generation !== captchaGeneration) return;
@@ -307,7 +301,7 @@ function login(msg = '') {
       form.dataset.busy = 'false';
       if (form.isConnected) {
         button.textContent = 'Login';
-        button.disabled = requiresCaptcha && !S.captchaToken;
+        button.disabled = requiresCaptcha && !sessionState.captchaToken;
       }
     }
   };
@@ -318,7 +312,6 @@ function register() {
     `${authHead('Back to Login', 'STUDENT REGISTRATION')}<h2>Create Student Profile</h2><p class="muted">Create your school-system account to apply for and track an ID replacement.</p><form class="form" id="f"><div class="grid2"><label>Student ID<input id="sid" required></label><label>First Name<input id="fn" required></label><label>Middle Name<input id="mn"></label><label>Last Name<input id="ln" required></label><label>School Email<input id="em" type="email" required></label><label>Contact Number<input id="ct"></label><label class="full">Address<input id="ad"></label><label>Course / Program<select id="pr">${courses.map((x) => `<option>${x}</option>`).join('')}</select></label><label>Year Level<select id="yr">${years.map((x) => `<option>${x}</option>`).join('')}</select></label><label>Section<input id="sc" required></label><label>Password<input id="pw" type="password" required></label><label>Confirm Password<input id="cp" type="password" required></label></div><div id="m"></div><button class="primary wide">Create Student Profile</button></form>`,
   );
   back.onclick = () => {
-    S.role = 'student';
     login();
   };
   f.onsubmit = async (e) => {
@@ -342,7 +335,7 @@ function register() {
           section: sc.value,
         }),
       });
-      S.role = 'student';
+
       login('Profile created successfully. You can now log in.');
     } catch (e) {
       m.innerHTML = `<div class="msg error">${escapeHTML(e.message)}</div>`;
@@ -353,7 +346,7 @@ function adminSetup() {
   loginShell(
     `${authHead('Back to Login', 'ONE-TIME SETUP')}<h2>Create Initial Administrator</h2><p class="muted">This setup disappears after the first Administrator is created.</p><form class="form" id="f"><div class="grid2"><label>First Name<input id="fn" required></label><label>Middle Name<input id="mn"></label><label>Last Name<input id="ln" required></label><label>Username<input id="un" required></label><label class="full">Email<input id="em" type="email" required></label><label>Password<input id="pw" type="password" required></label><label>Confirm Password<input id="cp" type="password" required></label></div><div id="m"></div><button class="primary wide">Create Initial Administrator</button></form>`,
   );
-  back.onclick = portals;
+  back.onclick = login;
   f.onsubmit = async (e) => {
     e.preventDefault();
     if (pw.value !== cp.value)
@@ -370,7 +363,7 @@ function adminSetup() {
           password: pw.value,
         }),
       });
-      S.role = 'admin';
+
       login('Administrator created successfully.');
     } catch (e) {
       m.innerHTML = `<div class="msg error">${escapeHTML(e.message)}</div>`;
@@ -378,10 +371,10 @@ function adminSetup() {
   };
 }
 async function loadMe() {
-  if (!S.token) return false;
+  if (!sessionState.token) return false;
   try {
     const d = await api('/auth/me');
-    S.user = d.user;
+    sessionState.user = d.user;
     return true;
   } catch {
     clearToken();
@@ -389,26 +382,30 @@ async function loadMe() {
   }
 }
 function menu() {
-  if (S.user.role === 'student')
+  if (sessionState.user.role === 'student')
     return ['Dashboard', 'Apply for ID', 'My Applications', 'Notifications'];
-  if (S.user.role === 'admin') return ['Dashboard', 'All Requests', 'Users', 'Activity Logs'];
+  if (sessionState.user.role === 'admin')
+    return ['Dashboard', 'All Requests', 'Users', 'Activity Logs'];
   return ['Dashboard', 'Applications'];
 }
 function app() {
-  root.innerHTML = `<div class="app"><div class="topbar"><div><h1>Student ID Replacement & Issuance System</h1><small>${escapeHTML(S.user.first_name)} ${escapeHTML(S.user.last_name)} · ${roleLabel(S.user.role)}</small></div><button class="outline" id="logout">Logout</button></div><div class="layout"><aside class="side">${menu()
-    .map((x) => `<button data-v="${x}" class="${S.view === x ? 'active' : ''}">${x}</button>`)
+  root.innerHTML = `<div class="app"><div class="topbar"><div><h1>Student ID Replacement & Issuance System</h1><small>${escapeHTML(sessionState.user.first_name)} ${escapeHTML(sessionState.user.last_name)} · ${roleLabel(sessionState.user.role)}</small></div><button class="outline" id="logout">Logout</button></div><div class="layout"><aside class="side">${menu()
+    .map(
+      (x) =>
+        `<button data-v="${x}" class="${sessionState.view === x ? 'active' : ''}">${x}</button>`,
+    )
     .join('')}</aside><main class="content" id="content"></main></div></div>`;
   logout.onclick = async () => {
     try {
       await api('/auth/logout', { method: 'POST' });
     } catch {}
     clearToken();
-    portals();
+    login();
   };
   document.querySelectorAll('[data-v]').forEach(
     (b) =>
       (b.onclick = () => {
-        S.view = b.dataset.v;
+        sessionState.view = b.dataset.v;
         app();
       }),
   );
@@ -416,17 +413,17 @@ function app() {
 }
 async function renderView() {
   content.innerHTML = '<div class="panel">Loading…</div>';
-  if (S.user.role === 'student') return studentView();
-  if (S.user.role === 'admin') return adminView();
+  if (sessionState.user.role === 'student') return studentView();
+  if (sessionState.user.role === 'admin') return adminView();
   return staffView();
 }
 async function studentView() {
-  if (S.view === 'Dashboard') {
-    content.innerHTML = `<h2>Student Dashboard</h2><div class="stats"><div class="stat"><span>Student ID</span><b>${escapeHTML(S.user.student_id || '-')}</b></div><div class="stat"><span>Program</span><b style="font-size:13px">${escapeHTML(S.user.program || '-')}</b></div><div class="stat"><span>Year</span><b>${escapeHTML(S.user.year_level || '-')}</b></div><div class="stat"><span>Section</span><b>${escapeHTML(S.user.section || '-')}</b></div></div><div class="panel"><h3>Profile</h3><div class="profileGrid"><div><span>Name</span><b>${escapeHTML(S.user.first_name)} ${escapeHTML(S.user.middle_name || '')} ${escapeHTML(S.user.last_name)}</b></div><div><span>Email</span><b>${escapeHTML(S.user.email)}</b></div><div><span>Contact</span><b>${escapeHTML(S.user.contact_number || '-')}</b></div><div><span>Address</span><b>${escapeHTML(S.user.address || '-')}</b></div></div></div>`;
+  if (sessionState.view === 'Dashboard') {
+    content.innerHTML = `<h2>Student Dashboard</h2><div class="stats"><div class="stat"><span>Student ID</span><b>${escapeHTML(sessionState.user.student_id || '-')}</b></div><div class="stat"><span>Program</span><b style="font-size:13px">${escapeHTML(sessionState.user.program || '-')}</b></div><div class="stat"><span>Year</span><b>${escapeHTML(sessionState.user.year_level || '-')}</b></div><div class="stat"><span>Section</span><b>${escapeHTML(sessionState.user.section || '-')}</b></div></div><div class="panel"><h3>Profile</h3><div class="profileGrid"><div><span>Name</span><b>${escapeHTML(sessionState.user.first_name)} ${escapeHTML(sessionState.user.middle_name || '')} ${escapeHTML(sessionState.user.last_name)}</b></div><div><span>Email</span><b>${escapeHTML(sessionState.user.email)}</b></div><div><span>Contact</span><b>${escapeHTML(sessionState.user.contact_number || '-')}</b></div><div><span>Address</span><b>${escapeHTML(sessionState.user.address || '-')}</b></div></div></div>`;
     return;
   }
-  if (S.view === 'Apply for ID') return applicationForm();
-  if (S.view === 'Notifications') {
+  if (sessionState.view === 'Apply for ID') return applicationForm();
+  if (sessionState.view === 'Notifications') {
     const d = await api('/notices');
     content.innerHTML = `<h2>Notifications</h2><div class="panel">${d.notices.length ? d.notices.map((n) => `<div style="padding:10px 0;border-bottom:1px solid #eee"><b>${escapeHTML(n.title)}</b><div class="muted">${escapeHTML(n.message)}</div></div>`).join('') : 'No notifications yet.'}</div>`;
     return;
@@ -486,7 +483,7 @@ function applicationForm() {
 }
 async function requestTable(staff = true) {
   const d = await api('/requests');
-  const admin = S.user.role === 'admin';
+  const admin = sessionState.user.role === 'admin';
   const showStudent = staff || admin;
   content.innerHTML = `<div class="sectionHead"><h2>${showStudent ? 'Applications' : 'My Applications'}</h2></div><div class="panel" style="overflow:auto"><table class="table"><thead><tr><th>Application</th><th>Student</th><th>Reason</th><th>Status</th><th>Updated</th><th>Documents</th>${staff ? '<th>Actions</th>' : ''}</tr></thead><tbody>${d.requests.length ? d.requests.map((r) => `<tr><td><b>${escapeHTML(r.application_no)}</b></td><td>${r.users ? `${escapeHTML(r.users.first_name)} ${escapeHTML(r.users.last_name)}<br><small>${escapeHTML(r.users.student_id || '')}</small>` : 'Me'}</td><td>${escapeHTML(r.reason)}</td><td><span class="badge">${escapeHTML(r.status)}</span></td><td>${new Date(r.updated_at).toLocaleString()}</td><td><button class="outline" data-docs="${escapeHTML(r.id)}" data-app="${escapeHTML(r.application_no)}">View Documents</button></td>${staff ? `<td><div class="actions">${actionButtons(r)}</div></td>` : ''}</tr>`).join('') : `<tr><td colspan="7">No applications found.</td></tr>`}</tbody></table></div>`;
   document
@@ -497,7 +494,7 @@ async function requestTable(staff = true) {
     .forEach((b) => (b.onclick = () => showDocuments(b.dataset.docs, b.dataset.app)));
 }
 function actionButtons(r) {
-  const role = S.user.role;
+  const role = sessionState.user.role;
   if (role === 'registrar') {
     if (r.status === 'Submitted')
       return `<button class="outline" data-id="${escapeHTML(r.id)}" data-status="Under Review">Under Review</button>`;
@@ -525,7 +522,7 @@ async function showDocuments(requestId, appNo) {
   try {
     const d = await docApi(`?request_id=${encodeURIComponent(requestId)}&metadata_only=true`);
     docBody.innerHTML = d.documents.length
-      ? `<div class="docList">${d.documents.map((x) => `<div class="docItem"><div class="docTop"><div><div class="docName">${x.kind === 'photo' ? 'ID Photo' : 'Affidavit of Loss'} — ${escapeHTML(x.file_name)}</div><div class="docMeta">${escapeHTML(x.content_type)} · ${(Number(x.size_bytes || 0) / 1024).toFixed(1)} KB</div><div class="docStatus">${escapeHTML(x.verified ? '✓ Verified' : x.invalid_reason ? '⚠ Invalid: ' + x.invalid_reason : 'Not yet reviewed')}</div></div><div class="actions">${x.can_view || x.view_url ? `<button class="outline" data-view="${escapeHTML(x.id)}">View</button>` : '<span class="muted">Preview unavailable</span>'}${['registrar', 'admin'].includes(S.user.role) ? `<button class="primary" data-verify="${escapeHTML(x.id)}">Verify</button><button class="danger" data-invalid="${escapeHTML(x.id)}">Mark Invalid</button>` : ''}</div></div></div>`).join('')}</div>`
+      ? `<div class="docList">${d.documents.map((x) => `<div class="docItem"><div class="docTop"><div><div class="docName">${x.kind === 'photo' ? 'ID Photo' : 'Affidavit of Loss'} — ${escapeHTML(x.file_name)}</div><div class="docMeta">${escapeHTML(x.content_type)} · ${(Number(x.size_bytes || 0) / 1024).toFixed(1)} KB</div><div class="docStatus">${escapeHTML(x.verified ? '✓ Verified' : x.invalid_reason ? '⚠ Invalid: ' + x.invalid_reason : 'Not yet reviewed')}</div></div><div class="actions">${x.can_view || x.view_url ? `<button class="outline" data-view="${escapeHTML(x.id)}">View</button>` : '<span class="muted">Preview unavailable</span>'}${['registrar', 'admin'].includes(sessionState.user.role) ? `<button class="primary" data-verify="${escapeHTML(x.id)}">Verify</button><button class="danger" data-invalid="${escapeHTML(x.id)}">Mark Invalid</button>` : ''}</div></div></div>`).join('')}</div>`
       : '<div class="panel">No uploaded documents found.</div>';
     document.querySelectorAll('[data-view]').forEach(
       (b) =>
@@ -593,21 +590,21 @@ async function changeStatus(id, status) {
   }
 }
 async function staffView() {
-  if (S.view === 'Dashboard') {
+  if (sessionState.view === 'Dashboard') {
     const d = await api('/requests');
-    content.innerHTML = `<h2>${roleLabel(S.user.role)} Dashboard</h2><div class="stats"><div class="stat"><span>Total Requests</span><b>${d.requests.length}</b></div><div class="stat"><span>Submitted</span><b>${d.requests.filter((x) => x.status === 'Submitted').length}</b></div><div class="stat"><span>Approved</span><b>${d.requests.filter((x) => x.status === 'Approved').length}</b></div><div class="stat"><span>Issued</span><b>${d.requests.filter((x) => x.status === 'Issued').length}</b></div></div>`;
+    content.innerHTML = `<h2>${roleLabel(sessionState.user.role)} Dashboard</h2><div class="stats"><div class="stat"><span>Total Requests</span><b>${d.requests.length}</b></div><div class="stat"><span>Submitted</span><b>${d.requests.filter((x) => x.status === 'Submitted').length}</b></div><div class="stat"><span>Approved</span><b>${d.requests.filter((x) => x.status === 'Approved').length}</b></div><div class="stat"><span>Issued</span><b>${d.requests.filter((x) => x.status === 'Issued').length}</b></div></div>`;
     return;
   }
   return requestTable(true);
 }
 async function adminView() {
-  if (S.view === 'Dashboard') {
+  if (sessionState.view === 'Dashboard') {
     const [r, u] = await Promise.all([api('/requests'), api('/users')]);
     content.innerHTML = `<h2>Administrator Dashboard</h2><div class="stats"><div class="stat"><span>Users</span><b>${u.users.length}</b></div><div class="stat"><span>Requests</span><b>${r.requests.length}</b></div><div class="stat"><span>Approved</span><b>${r.requests.filter((x) => x.status === 'Approved').length}</b></div><div class="stat"><span>Issued</span><b>${r.requests.filter((x) => x.status === 'Issued').length}</b></div></div>`;
     return;
   }
-  if (S.view === 'All Requests') return requestTable(false);
-  if (S.view === 'Activity Logs') {
+  if (sessionState.view === 'All Requests') return requestTable(false);
+  if (sessionState.view === 'Activity Logs') {
     const d = await api('/activity-logs');
     content.innerHTML = `<h2>Activity Logs</h2><div class="panel" style="overflow:auto"><table class="table"><tr><th>Date</th><th>Role</th><th>Action</th><th>Description</th></tr>${d.logs.map((x) => `<tr><td>${new Date(x.created_at).toLocaleString()}</td><td>${escapeHTML(x.role || '-')}</td><td>${escapeHTML(x.action)}</td><td>${escapeHTML(x.description)}</td></tr>`).join('')}</table></div>`;
     return;
@@ -675,5 +672,5 @@ async function toggleUser(id, active) {
 }
 (async () => {
   if (await loadMe()) app();
-  else portals();
+  else login();
 })();
