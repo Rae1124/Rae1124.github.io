@@ -42,7 +42,7 @@ Adding SMTP to Supabase **Auth settings** alone does not configure these emails:
 this project's custom backend uses the Edge Function secrets above. Until the
 secrets are configured and `SMTP_ENABLED=true`, no SMTP connection is attempted.
 
-Apply the `add_status_email_delivery` migration before deploying the updated
+Apply the migrations in `supabase/migrations/` in order before deploying the updated
 `id-system-api` function. Deploy its `_shared/status-email.ts` and
 `_shared/data-security.ts` dependencies too. Keep `verify_jwt=false` for this
 existing function because its routes validate the project's opaque sessions.
@@ -54,6 +54,11 @@ The database commits the application status, status history, and in-app/email
 notification in one transaction. Repeated saves of the same status do not create
 another notification. Conflicting updates return HTTP 409, so the staff member
 can refresh before trying again.
+
+Each status change marks older unsent status emails as skipped. This prevents
+an earlier set of instructions from being retried if an Administrator later
+returns the application to the same status. An email already in transit cannot
+be recalled.
 
 Email is attempted after that transaction. SMTP failure cannot roll back a valid
 application update. The status endpoint returns `email.status` alongside

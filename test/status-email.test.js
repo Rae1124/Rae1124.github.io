@@ -129,6 +129,13 @@ function emailBackend(options = {}) {
         email_attempts: 0,
         email_attempted_at: null,
       };
+      for (const previous of tables.notifications) {
+        if (
+          previous.request_id === application.id &&
+          ['pending', 'sending', 'failed', 'not_configured'].includes(previous.email_status)
+        )
+          previous.email_status = 'skipped';
+      }
       tables.notifications.push(notification);
       return { data: notification.id, error: null };
     },
@@ -159,6 +166,7 @@ function emailBackend(options = {}) {
                 code: 'EAUTH',
               });
             sent.push(message);
+            if (options.supersedeDuringSend) tables.notifications[0].email_status = 'skipped';
             return { accepted: [student.email], rejected: [], messageId: message.messageId };
           },
           close() {},
@@ -412,4 +420,14 @@ test('SMTP configuration cannot downgrade TLS or use blocked submission ports', 
     assert.equal(backend.transports.length, 0);
     assert.equal(backend.tables.notifications[0].email_error_code, 'SMTP_CONFIGURATION');
   }
+});
+
+test('a superseded delivery claim cannot report a receipt that was not recorded', async () => {
+  const backend = emailBackend({ supersedeDuringSend: true });
+  const response = await backend.call('/requests/request-1/status', {
+    status: 'Ready for Issuance',
+  });
+  assert.equal(response.body.email.status, 'unknown');
+  assert.equal(backend.tables.notifications[0].email_status, 'skipped');
+  assert.equal(backend.sent.length, 1);
 });

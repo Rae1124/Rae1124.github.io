@@ -178,7 +178,7 @@ export async function sendStatusEmail(db: any, notificationId: string) {
     } finally {
       transport.close();
     }
-    const { error: recordError } = await db
+    const { data: recorded, error: recordError } = await db
       .from('notifications')
       .update({
         email_status: deliveryStatus,
@@ -187,8 +187,10 @@ export async function sendStatusEmail(db: any, notificationId: string) {
       })
       .eq('id', notificationId)
       .eq('email_status', 'sending')
-      .eq('email_attempts', attemptNumber);
-    if (recordError) throw Error('DATABASE_ERROR');
+      .eq('email_attempts', attemptNumber)
+      .select('id')
+      .maybeSingle();
+    if (recordError || !recorded) throw Error('DATABASE_ERROR');
     return { status: deliveryStatus };
   } catch {
     // SMTP responses can contain addresses and credentials; never log raw errors.
