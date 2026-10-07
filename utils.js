@@ -38,3 +38,7 @@ export function fileToBase64(file) {
     reader.readAsDataURL(file);
   });
 }
+
+export function readFormValues(form, names) {
+  return Object.fromEntries(names.map((name) => [name, form.elements.namedItem(name).value]));
+}

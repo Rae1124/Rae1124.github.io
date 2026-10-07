@@ -46,9 +46,9 @@ test('offline application view shows connection error instead of permanent loadi
     },
   });
   const w = dom.window;
-  w.document.getElementById('id').value = 'student';
-  w.document.getElementById('pw').value = 'Password123';
-  await w.document.getElementById('f').onsubmit({ preventDefault() {} });
+  w.document.getElementById('identifierInput').value = 'student';
+  w.document.getElementById('passwordInput').value = 'Password123';
+  await w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   const unhandled = [];
   const listener = (e) => unhandled.push(e);
   process.on('unhandledRejection', listener);
@@ -84,11 +84,11 @@ test('Registrar can approve or reject an application under review', async () => 
     },
   });
   const w = dom.window;
-  w.document.getElementById('id').value = 'staff';
-  w.document.getElementById('pw').value = 'Password123';
-  await w.document.getElementById('f').onsubmit({ preventDefault() {} });
+  w.document.getElementById('identifierInput').value = 'staff';
+  w.document.getElementById('passwordInput').value = 'Password123';
+  await w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   await w.document.getElementById('verifyHuman').onclick();
-  await w.document.getElementById('f').onsubmit({ preventDefault() {} });
+  await w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   await tick();
   w.document.querySelector('[data-v="Applications"]').click();
   await tick();

@@ -29,6 +29,8 @@
     "files": [
       "electron/**",
       "renderer/**",
+      "auth.js",
+      "ui.js",
       "api.js",
       "config.js",
       "state.js",
