@@ -28,6 +28,12 @@ async function loadClient(dom, entryPath) {
     if (module.status === 'linked') await module.evaluate();
     return module.namespace;
   }
+  if (entryPath.endsWith('.html')) {
+    const html = fs.readFileSync(entryPath, 'utf8');
+    const script = html.match(/<script type="module" src="([^"]+)"/);
+    if (!script) throw Error('Module entry missing from ' + entryPath);
+    entryPath = path.resolve(path.dirname(entryPath), script[1]);
+  }
   await importModule(entryPath);
   return { importModule };
 }

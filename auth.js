@@ -203,7 +203,7 @@ export function createAuth(onAuthenticated) {
         saveToken(data.token, payload.remember);
         sessionState.user = data.user;
 
-        sessionState.view = 'Dashboard';
+        sessionState.currentView = 'Dashboard';
         onAuthenticated();
       } catch (error) {
         if (!form.isConnected || generation !== captchaGeneration) return;

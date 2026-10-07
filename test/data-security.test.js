@@ -305,7 +305,7 @@ test('an existing document row cannot expose a file from another student folder'
   assert.equal(r.data.documents[0].view_url, null);
 });
 
-for (const file of ['app.js', 'renderer/app.js'])
+for (const file of ['app.js', 'renderer/index.html'])
   test(file + ': account text and notification content cannot inject HTML', async (t) => {
     const attack = '<img src=x onerror="alert(1)"><script>evil()</script>';
     const dom = new JSDOM('<div id="root"></div>', {
@@ -331,7 +331,7 @@ for (const file of ['app.js', 'renderer/app.js'])
     await tick();
     assert.equal(w.document.querySelectorAll('img,script').length, 0);
     assert.ok(w.document.body.textContent.includes(attack));
-    w.document.querySelector('[data-v="Notifications"]').click();
+    w.document.querySelector('[data-view="Notifications"]').click();
     await tick();
     assert.equal(w.document.querySelectorAll('img,script').length, 0);
     assert.ok(w.document.getElementById('content').textContent.includes(attack));

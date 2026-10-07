@@ -38,6 +38,9 @@ select,
 textarea {
   font: inherit;
 }
+small {
+  font-size: 14px;
+}
 button {
   transition:
     background 0.18s ease,
@@ -487,6 +490,10 @@ textarea:focus-visible {
   color: #60758f;
   flex: 0 0 auto;
 }
+.navIcon svg {
+  width: 18px;
+  height: 18px;
+}
 .side button.active .navIcon {
   background: #dceafb;
   color: #1f5f9e;
@@ -530,6 +537,13 @@ textarea:focus-visible {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 20px 0;
+}
+.stat .statText {
+  font-size: 14px;
+}
+.noticeItem {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
 }
 .stat,
 .panel {
@@ -841,9 +855,6 @@ textarea:focus-visible {
   .topbar h1 {
     font-size: 14px;
   }
-  .topbar small {
-    font-size: 14px;
-  }
   .content {
     padding: 20px 13px 36px;
   }
@@ -852,9 +863,6 @@ textarea:focus-visible {
   }
   .panel {
     padding: 15px;
-  }
-  .table {
-    font-size: 14px;
   }
   .sectionHead,
   .docTop {

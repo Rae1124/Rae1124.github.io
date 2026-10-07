@@ -90,3 +90,39 @@ export function renderStats(statistics) {
     )
     .join('')}</div>`;
 }
+
+export function renderTable(columns, rows, emptyMessage = '') {
+  const headings = columns.map((column) => `<th>${escapeHTML(column)}</th>`).join('');
+  const emptyRow = emptyMessage
+    ? `<tr><td colspan="${columns.length}">${escapeHTML(emptyMessage)}</td></tr>`
+    : '';
+  return `<div class="panel tablePanel"><table class="table">
+    <thead><tr>${headings}</tr></thead>
+    <tbody>${rows.length ? rows.join('') : emptyRow}</tbody>
+  </table></div>`;
+}
+
+export function renderStatusBadge(status) {
+  const slug = String(status || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `<span class="badge status-${slug}">${escapeHTML(status)}</span>`;
+}
+
+export function renderNavigationItem(view, currentView) {
+  const iconPaths = {
+    Dashboard: 'M3 10 12 3l9 7v11h-6v-7H9v7H3Z',
+    Applications: 'M5 3h14v18H5Z M8 7h8 M8 11h8 M8 15h5',
+    'Apply for ID': 'M12 4v16 M4 12h16',
+    'My Applications': 'M5 3h14v18H5Z M8 7h8 M8 11h8 M8 15h5',
+    Notifications: 'M5 17h14l-2-4V8a5 5 0 0 0-10 0v5Z M10 21h4',
+    'All Requests': 'M5 3h14v18H5Z M8 7h8 M8 11h8 M8 15h5',
+    Users: 'M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 21v-3a8 8 0 0 1 16 0v3',
+    'Activity Logs': 'M4 6h16 M4 12h16 M4 18h16',
+  };
+  return `<button data-view="${escapeHTML(view)}" class="${currentView === view ? 'active' : ''}">
+    <span class="navIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="${iconPaths[view] || ''}"/></svg></span>
+    <span class="navLabel">${escapeHTML(view)}</span>
+  </button>`;
+}

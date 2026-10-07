@@ -70,7 +70,7 @@ async function page(file, role = 'student', options = {}) {
   return { dom, w, calls, submit, credentials, verify, getCaptcha: () => captcha };
 }
 
-for (const file of ['app.js', 'renderer/app.js']) {
+for (const file of ['app.js', 'renderer/index.html']) {
   test(file + ': opens one login and routes a student without CAPTCHA', async (t) => {
     const p = await page(file);
     t.after(() => p.dom.window.close());
@@ -112,7 +112,7 @@ for (const file of ['app.js', 'renderer/app.js']) {
       await p.submit();
       await tick();
       assert.equal(p.w.document.querySelector('#content h2').textContent, title);
-      assert.ok(p.w.document.querySelector('[data-v="' + menu + '"]'));
+      assert.ok(p.w.document.querySelector('[data-view="' + menu + '"]'));
       const login = p.calls.find((q) => q.service === 'staff-login');
       assert.equal(login.body.portal, undefined);
       assert.equal(login.body.captchaToken, 'verified-token');

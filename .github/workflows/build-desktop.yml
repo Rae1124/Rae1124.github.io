@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - '*.js'
+      - '*.html'
+      - '*.css'
+      - 'views/**'
       - 'electron/**'
       - 'renderer/**'
       - 'build/**'

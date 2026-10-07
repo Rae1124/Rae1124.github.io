@@ -12,23 +12,23 @@ async function page(bridge = {}, rememberedToken) {
   if (rememberedToken) w.localStorage.setItem('idrs_token', rememberedToken);
   w.desktopApi = { request: async () => ({}), ...bridge };
   w.alert = () => {};
-  dom.clientModules = await loadClient(dom, 'renderer/app.js');
+  dom.clientModules = await loadClient(dom, 'renderer/index.html');
   await tick();
   return dom;
 }
 test('desktop password and remark dialogs accept/cancel without browser prompt', async () => {
   const dom = await page();
   const w = dom.window;
-  const { desktopPrompt } = await dom.clientModules.importModule('renderer/app.js');
-  const p = desktopPrompt('Remark', 'default');
-  w.document.getElementById('desktopPromptInput').value = 'Reviewed';
+  const { promptForText } = await dom.clientModules.importModule('platform.js');
+  const p = promptForText('Remark', 'default');
+  w.document.getElementById('promptInput').value = 'Reviewed';
   w.document
-    .getElementById('desktopPromptForm')
+    .getElementById('promptForm')
     .dispatchEvent(new w.Event('submit', { cancelable: true }));
   assert.equal(await p, 'Reviewed');
-  const q = desktopPrompt('Temporary password', '', true);
-  assert.equal(w.document.getElementById('desktopPromptInput').type, 'password');
-  w.document.getElementById('desktopPromptCancel').click();
+  const q = promptForText('Temporary password', '', true);
+  assert.equal(w.document.getElementById('promptInput').type, 'password');
+  w.document.getElementById('promptCancel').click();
   assert.equal(await q, null);
   dom.window.close();
 });
@@ -52,7 +52,7 @@ test('offline application view shows connection error instead of permanent loadi
   const unhandled = [];
   const listener = (e) => unhandled.push(e);
   process.on('unhandledRejection', listener);
-  w.document.querySelector('[data-v="My Applications"]').click();
+  w.document.querySelector('[data-view="My Applications"]').click();
   await tick();
   process.off('unhandledRejection', listener);
   assert.match(w.document.getElementById('content').textContent, /Unable to connect/);
@@ -90,7 +90,7 @@ test('Registrar can approve or reject an application under review', async () => 
   await w.document.getElementById('verifyHuman').onclick();
   await w.document.getElementById('loginForm').onsubmit({ preventDefault() {} });
   await tick();
-  w.document.querySelector('[data-v="Applications"]').click();
+  w.document.querySelector('[data-view="Applications"]').click();
   await tick();
   assert.ok(w.document.querySelector('[data-status="Approved"]'), 'Approve missing');
   assert.ok(w.document.querySelector('[data-status="Rejected"]'), 'Reject missing');

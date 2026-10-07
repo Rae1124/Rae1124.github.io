@@ -29,6 +29,9 @@
     "files": [
       "electron/**",
       "renderer/**",
+      "app.js",
+      "platform.js",
+      "views/**",
       "auth.js",
       "ui.js",
       "api.js",

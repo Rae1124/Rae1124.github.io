@@ -23,11 +23,16 @@ export function isApprovedDocumentUrl(value) {
 }
 
 export function roleLabel(role) {
-  return (
-    { student: 'Student', registrar: 'Registrar', idoffice: 'ID Office', admin: 'Administrator' }[
-      role
-    ] || 'Administrator'
-  );
+  switch (role) {
+    case 'student':
+      return 'Student';
+    case 'registrar':
+      return 'Registrar';
+    case 'idoffice':
+      return 'ID Office';
+    default:
+      return 'Administrator';
+  }
 }
 
 export function fileToBase64(file) {

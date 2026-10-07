@@ -1,7 +1,7 @@
 export const sessionState = {
   user: null,
   token: localStorage.getItem('idrs_token') || sessionStorage.getItem('idrs_token') || '',
-  view: 'Dashboard',
+  currentView: 'Dashboard',
 };
 
 export function saveToken(token, remember) {
