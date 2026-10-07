@@ -3,6 +3,12 @@
 Run `npm test` for the automated tests and `npm run format:check` for formatting.
 Tests cover login routing, staff verification, role permissions, file ownership,
 response field limits, text escaping, Electron window isolation, and IPC validation.
+Client workflow tests also cover registration/setup payloads, upload ordering,
+empty table columns, staff administration, document previews, and the existing
+platform-specific review/dialog behavior. They reject access through implicit
+window element globals and check that stale view responses cannot replace a newer
+page. The browser module graph is executed in isolated JSDOM contexts; these tests
+use mocked API responses and do not perform live account operations.
 
 The **Build Windows Desktop** workflow runs the tests, builds the installer and
 portable application, and checks both on Windows. It verifies the School Login
