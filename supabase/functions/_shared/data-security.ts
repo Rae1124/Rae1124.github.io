@@ -25,7 +25,7 @@ export function selfProfile(user: any) {
   return pickFields(user, fields);
 }
 export function accountSummary(user: any) {
-  return pickFields(user, ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'active']);
+  return pickFields(user, ['id', 'username', 'first_name', 'last_name', 'role', 'active']);
 }
 export function requestSummary(request: any, role: string) {
   const result = pickFields(request, [
