@@ -428,6 +428,8 @@ Deno.serve(async (req: Request) => {
       const updates: any = { updated_at: now() };
       if (typeof body.active === 'boolean') updates.active = body.active;
       if (body.role && roles.includes(body.role)) updates.role = body.role;
+      if (id === a.user.id && (updates.active === false || (updates.role && updates.role !== 'admin')))
+        return err(req, 'You cannot remove your own administrator access.', 409);
       await db.from('users').update(updates).eq('id', id);
       if (body.active === false)
         await db.from('sessions').update({ revoked_at: now() }).eq('user_id', id);
@@ -587,7 +589,12 @@ Deno.serve(async (req: Request) => {
       const { data: r } = await db.from('id_requests').select('*').eq('id', id).maybeSingle();
       if (!r) return err(req, 'Application not found.', 404);
       const s = String(body.status || ''),
-        remarks = String(body.remarks || s);
+        remarks = String(body.remarks || s).trim().slice(0, 2000);
+      const validStatuses = [
+        'Submitted', 'Under Review', 'Documents Required', 'Approved', 'Rejected',
+        'Processing', 'Ready for Issuance', 'Issued', 'Cancelled',
+      ];
+      if (!validStatuses.includes(s)) return err(req, 'Invalid application status.', 400);
       if (s === r.status) return j(req, { success: true });
       if (a.user.role === 'registrar') {
         const valid =
