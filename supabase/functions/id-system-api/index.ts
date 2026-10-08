@@ -185,6 +185,8 @@ Deno.serve(async (req: Request) => {
   const path = pathOf(req);
   let body: any = {};
   if (!['GET', 'HEAD'].includes(req.method)) {
+    const length = Number(req.headers.get('content-length') || 0);
+    if (length > 8000000) return err(req, 'Request body too large.', 413);
     try {
       body = await req.json();
     } catch {
@@ -255,6 +257,10 @@ Deno.serve(async (req: Request) => {
         section = String(body.section || '').trim();
       if (!studentId || !first || !last || !email.includes('@') || !program || !year || !section)
         return err(req, 'Complete all required student profile fields.');
+      if (Deno.env.get('ALLOW_UNVERIFIED_STUDENT_REGISTRATION') !== 'true')
+        return err(req, 'Student registration requires school verification. Contact the Registrar.', 403);
+      if ([studentId, first, middle, last, email, program, year, section].some((v) => v.length > 255))
+        return err(req, 'A registration field exceeds the maximum length.', 400);
       const pe = passwordIssue(password);
       if (pe) return err(req, pe);
       const { data: u, error: e } = await db
@@ -490,7 +496,8 @@ Deno.serve(async (req: Request) => {
       if (!a) return err(req, 'Access denied.', 403);
       if (
         !['Lost ID', 'Damaged ID'].includes(body.reason) ||
-        String(body.description || '').trim().length < 10
+        String(body.description || '').trim().length < 10 ||
+        String(body.description || '').length > 2000
       )
         return err(req, 'Reason and description are required.');
       const uploaded = [];
