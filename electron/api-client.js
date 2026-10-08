@@ -13,6 +13,8 @@ async function requestProductionApi(input, fetchImpl = fetch) {
       headers,
       body: q.body === undefined ? undefined : JSON.stringify(q.body),
       redirect: 'error',
+      cache: 'no-store',
+      referrerPolicy: 'no-referrer',
       signal: AbortSignal.timeout(45000),
     });
   } catch {
@@ -24,8 +26,11 @@ async function requestProductionApi(input, fetchImpl = fetch) {
   } catch {
     throw Error('The server returned an invalid response. Please try again.');
   }
-  if (!response.ok)
+  if (!response.ok) {
+    if (response.status >= 500)
+      throw Error('The service is temporarily unavailable. Please try again later.');
     throw Error(typeof data?.error === 'string' ? data.error : 'Request failed. Please try again.');
+  }
   if (!data || typeof data !== 'object')
     throw Error('The server returned an invalid response. Please try again.');
   return data;
