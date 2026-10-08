@@ -5,3 +5,14 @@ build/icon.ico
 supabase/.temp/
 **/.env*
 !**/.env.example
+
+# Local development tools and temporary output
+.cursor/
+.aider*
+.claude/
+.copilot/
+*.prompt.log
+*.chat.log
+*.tsbuildinfo
+coverage/
+*.map
