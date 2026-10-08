@@ -427,11 +427,14 @@ Deno.serve(async (req: Request) => {
       const id = path.split('/')[2];
       const updates: any = { updated_at: now() };
       if (typeof body.active === 'boolean') updates.active = body.active;
-      if (body.role && roles.includes(body.role)) updates.role = body.role;
+      if (body.role !== undefined) {
+        if (!roles.includes(body.role)) return err(req, 'Invalid user role.', 400);
+        updates.role = body.role;
+      }
       if (id === a.user.id && (updates.active === false || (updates.role && updates.role !== 'admin')))
         return err(req, 'You cannot remove your own administrator access.', 409);
       await db.from('users').update(updates).eq('id', id);
-      if (body.active === false)
+      if (body.active === false || (updates.role && updates.role !== a.user.role))
         await db.from('sessions').update({ revoked_at: now() }).eq('user_id', id);
       await log(a.user, 'USER_ACCESS_UPDATED', `Updated user ${id}.`, req);
       return j(req, { success: true });
@@ -472,8 +475,9 @@ Deno.serve(async (req: Request) => {
         (kind === 'photo' && !['image/jpeg', 'image/png'].includes(contentType))
       )
         return err(req, 'The file contents do not match the required file type.');
-      if (bytes.length > 5242880) return err(req, 'File exceeds 5 MB limit.');
-      const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+      if (bytes.length === 0 || bytes.length > 5242880)
+        return err(req, 'File must be between 1 byte and 5 MB.');
+      const safe = filename.slice(0, 120).replace(/[^a-zA-Z0-9._-]/g, '_');
       const storagePath = `${a.user.id}/${Date.now()}-${kind}-${safe}`;
       const { error: e } = await db.storage
         .from('student-id-files')
