@@ -149,8 +149,10 @@ Deno.serve(async (req: Request) => {
       const access = await canAccessRequest(user, doc.request_id);
       if (!access.allowed) return error(req, 'Access denied.', 403);
 
-      const verified = Boolean(body.verified);
-      const invalidReason = verified ? '' : String(body.invalid_reason || '').trim();
+      if (typeof body.verified !== 'boolean')
+        return error(req, 'Document verification must be true or false.', 400);
+      const verified = body.verified;
+      const invalidReason = verified ? '' : String(body.invalid_reason || '').trim().slice(0, 1000);
       if (!verified && !invalidReason)
         return error(req, 'Provide a reason when marking a document invalid.');
       const { error: updateError } = await db
