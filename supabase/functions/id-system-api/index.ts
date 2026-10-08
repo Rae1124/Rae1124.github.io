@@ -440,7 +440,7 @@ Deno.serve(async (req: Request) => {
       if (id === a.user.id && (updates.active === false || (updates.role && updates.role !== 'admin')))
         return err(req, 'You cannot remove your own administrator access.', 409);
       await db.from('users').update(updates).eq('id', id);
-      if (body.active === false || (updates.role && updates.role !== a.user.role))
+      if (body.active === false || updates.role)
         await db.from('sessions').update({ revoked_at: now() }).eq('user_id', id);
       await log(a.user, 'USER_ACCESS_UPDATED', `Updated user ${id}.`, req);
       return j(req, { success: true });
