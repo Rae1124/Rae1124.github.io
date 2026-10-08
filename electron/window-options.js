@@ -24,7 +24,7 @@ function mainWindowOptions({ packaged = false } = {}) {
       ...preferences,
       devTools: !packaged,
       preload: path.join(__dirname, 'preload.js'),
-      partition: 'persist:student-id-desktop',
+      partition: 'student-id-desktop',
     },
   };
 }
